@@ -2,7 +2,7 @@ import { Router } from 'express';
 import * as object from '../models/objectIndex.js';
 
 
-export const getUserRoutes = () => {
+export const getWishRoutes = () => {
   const router = Router();
 
   router.get('/', async (req, res, _next) => {

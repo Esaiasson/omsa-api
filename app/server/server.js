@@ -1,5 +1,6 @@
 import express from 'express';
-import { getUserRoutes } from './routes/test.js';
+import { getWishRoutes } from './routes/wishRoutes.js';
+import { getHaveRoutes } from './routes/haveRoutes.js';
 
 export const createServer = () => {
   const app = express();
@@ -8,7 +9,8 @@ export const createServer = () => {
     res.json('Hello, world!');
   });
   app.use(express.json());
-  app.use('/wish', getUserRoutes());
+  app.use('/wish', getWishRoutes());
+  app.use('/have', getHaveRoutes());
 
   return app;
 };
