@@ -1,12 +1,10 @@
 import { Router } from 'express';
 import * as object from '../models/objectIndex.js';
 
-
 export const getHaveRoutes = () => {
   const router = Router();
 
   router.get('/', async (req, res, next) => {
-
       const have = await object.have.findAll({
       });
       res.status(200).send(have);
@@ -19,11 +17,11 @@ export const getHaveRoutes = () => {
       const result = await object.have.create({
         id: '0a384389-e996-4082-ab1b-1bd42a181220',
         user_id: '0a384389-e996-4082-ab1b-1bd42a181220',
-        category_1: 'test',
+        category_1: 'testhave',
       });
 
       if (result === null) {
-        return res.status(404).json('No group created');
+        return res.status(404).json('No have created');
       }
 
       res.status(201).send();
