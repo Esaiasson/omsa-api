@@ -17,7 +17,7 @@ export const wish = db.define(
     },
     category_1: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
     },
     category_2: {
       type: DataTypes.STRING,
