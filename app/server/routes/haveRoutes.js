@@ -5,6 +5,13 @@ import { db } from '../database/databaseConnection.js';
 export const getHaveRoutes = () => {
   const router = Router();
 
+  router.get('/', async (req, res, next) => {
+    const have = await object.have.findAll({
+    });
+    res.status(200).send(have);
+  });
+
+  //Function for finding users that wants what 'user_id' has. Matches are found based on a singular have request. 
   router.get('/matchForHave', async (req, res, next) => {
     const { user_id } = req.body;  
   
@@ -12,116 +19,118 @@ export const getHaveRoutes = () => {
       return res.status(400).json({ message: 'Missing required user_id parameter' });
     }
   
+    //SQL query that searches through 13 potential categories
     try {
       const [results, metadata] = await db.query(`
       select *, '1'  as matchlevel
-      FROM have h
+      FROM wish w
       where exists (
-        select * from wish w
-        where h.category_1 = w.category_1 
-        and w.user_id = :user_id
+        select * from have h
+        where w.category_1 = h.category_1 
+        and h.user_id = :user_id
       )
       union
-       select *, '2' as matchlevel
-      FROM have h
+      select *, '2' as matchlevel
+      FROM wish w
       where exists (
-        select * from wish w
-        where h.category_2 = w.category_2 
-        and w.user_id = :user_id
+        select * from have h
+        where w.category_2 = h.category_2 
+        and h.user_id = :user_id
       )
       union
-       select *, '3' as matchlevel
-      FROM have h
+      select *, '3' as matchlevel
+      FROM wish w
       where exists (
-        select * from wish w
-        where h.category_3 = w.category_3 
-        and w.user_id = :user_id
+        select * from have h
+        where w.category_3 = h.category_3 
+        and h.user_id = :user_id
       )
       union
-       select *, '4' as matchlevel
-      FROM have h
+      select *, '4' as matchlevel
+      FROM wish w
       where exists (
-        select * from wish w
-        where h.category_4 = w.category_4 
-        and w.user_id = :user_id
+        select * from have h
+        where w.category_4 = h.category_4 
+        and h.user_id = :user_id
       )
       union
-       select *, '5' as matchlevel
-      FROM have h
+      select *, '5' as matchlevel
+      FROM wish w
       where exists (
-        select * from wish w
-        where h.category_5 = w.category_5 
-        and w.user_id = :user_id
+        select * from have h
+        where w.category_5 = h.category_5 
+        and h.user_id = :user_id
       )
       union
-       select *, '6' as matchlevel
-      FROM have h
+      select *, '6' as matchlevel
+      FROM wish w
       where exists (
-        select * from wish w
-        where h.category_6 = w.category_6 
-        and w.user_id = :user_id
+        select * from have h
+        where w.category_6 = h.category_6 
+        and h.user_id = :user_id
       )
       union
-       select *, '7' as matchlevel
-      FROM have h
+      select *, '7' as matchlevel
+      FROM wish w
       where exists (
-        select * from wish w
-        where h.category_7 = w.category_7
-        and w.user_id = :user_id
+        select * from have h
+        where w.category_7 = h.category_7
+        and h.user_id = :user_id
       )
       union
-       select *, '8' as matchlevel
-      FROM have h
+      select *, '8' as matchlevel
+      FROM wish w
       where exists (
-        select * from wish w
-        where h.category_8 = w.category_8 
-        and w.user_id = :user_id
+        select * from have h
+        where w.category_8 = h.category_8 
+        and h.user_id = :user_id
       )
       union
-       select *, '9' as matchlevel
-      FROM have h
+      select *, '9' as matchlevel
+      FROM wish w
       where exists (
-        select * from wish w
-        where h.category_9 = w.category_9 
-        and w.user_id = :user_id
+        select * from have h
+        where w.category_9 = h.category_9 
+        and h.user_id = :user_id
       )
       union
-       select *, '10' as matchlevel
-      FROM have h
+      select *, '10' as matchlevel
+      FROM wish w
       where exists (
-        select * from wish w
-        where h.category_10 = w.category_10
-        and w.user_id = :user_id
+        select * from have h
+        where w.category_10 = h.category_10
+        and h.user_id = :user_id
       )
       union
-       select *, '11' as matchlevel
-      FROM have h
+      select *, '11' as matchlevel
+      FROM wish w
       where exists (
-        select * from wish w
-        where h.category_11 = w.category_11 
-        and w.user_id = :user_id
+        select * from have h
+        where w.category_11 = h.category_11 
+        and h.user_id = :user_id
       )
       union
-       select *, '12' as matchlevel
-      FROM have h
+      select *, '12' as matchlevel
+      FROM wish w
       where exists (
-        select * from wish w
-        where h.category_12 = w.category_12 
-        and w.user_id = :user_id
+        select * from have h
+        where w.category_12 = h.category_12 
+        and h.user_id = :user_id
       )    
       union
-       select *, '13' as matchlevel
-      FROM have h
+      select *, '13' as matchlevel
+      FROM wish w
       where exists (
-        select * from wish w
-        where h.category_13 = w.category_13 
-        and w.user_id = :user_id
+        select * from have h
+        where w.category_13 = h.category_13 
+        and h.user_id = :user_id
       )
       order by matchlevel desc`, {
           replacements: { user_id },
           type: db.QueryTypes.RAW
       });
 
+      //Object created for sending API-response
       let sortedMatches = {
         1: [],
         2: [],
@@ -140,38 +149,16 @@ export const getHaveRoutes = () => {
 
       // Process results to populate sortedMatches
       results.forEach(item => {
-        let alreadyExists = false
         let { id, user_id, article_id, matchlevel } = item;
         matchlevel = parseInt(matchlevel)
-        if (matchlevel != 13){
-          console.log(matchlevel +1);
-          sortedMatches[matchlevel + 1].forEach(subitem =>{
-            if(subitem.id === item.id){
-              alreadyExists = true
-            }
-          })
-          if (alreadyExists === false){
-            sortedMatches[matchlevel].push({
-              id,
-              user_id,
-              article_id,
-              matchlevel
-            });
-          }
-        }
-        if (matchlevel === 13) {
-          sortedMatches[matchlevel].push({
-            id,
-            user_id,
-            article_id,
-            matchlevel
-          });
-        
-        } 
+
+        sortedMatches[matchlevel].push({
+          id,
+          user_id,
+          article_id,
+          matchlevel
+        });
       });
-
-      console.log(sortedMatches);
-
       res.status(200).json(results);
     } catch (error) {
       console.error('Error fetching wishes:', error);
@@ -179,12 +166,7 @@ export const getHaveRoutes = () => {
     }
   });
 
-  router.get('/', async (req, res, next) => {
-      const have = await object.have.findAll({
-      });
-      res.status(200).send(have);
-  });
-
+  //Function for creating a new have object in db
   router.post('/createHave', async (req, res, next) => {
     const { 
       id, 
@@ -241,6 +223,5 @@ export const getHaveRoutes = () => {
     }
   });
   
-
   return router;
 };
