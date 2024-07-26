@@ -166,13 +166,44 @@ export const getHaveRoutes = () => {
 
     // Process results to populate sortedMatches
     results.forEach(item => {
-      let { id, user_id, article_id, matchlevel } = item;
+      let { 
+        id,
+        user_id,
+        article_id,
+        category_1,
+        category_2,
+        category_3,
+        category_4,
+        category_5,
+        category_6,
+        category_7,
+        category_8,
+        category_9,
+        category_10,
+        category_11,
+        category_12,
+        category_13,
+        matchlevel
+       } = item;
       matchlevel = parseInt(matchlevel)
       
       sortedMatches[matchlevel].push({
         id,
         user_id,
         article_id,
+        category_1,
+        category_2,
+        category_3,
+        category_4,
+        category_5,
+        category_6,
+        category_7,
+        category_8,
+        category_9,
+        category_10,
+        category_11,
+        category_12,
+        category_13,
         matchlevel
       });  
   });
@@ -339,13 +370,44 @@ export const getHaveRoutes = () => {
 
       // Process results to populate sortedMatches
       results.forEach(item => {
-        let { id, user_id, article_id, matchlevel } = item;
+        let { 
+          id,
+          user_id,
+          article_id,
+          category_1,
+          category_2,
+          category_3,
+          category_4,
+          category_5,
+          category_6,
+          category_7,
+          category_8,
+          category_9,
+          category_10,
+          category_11,
+          category_12,
+          category_13,
+          matchlevel
+         } = item;
         matchlevel = parseInt(matchlevel)
 
         sortedMatches[matchlevel].push({
           id,
           user_id,
           article_id,
+          category_1,
+          category_2,
+          category_3,
+          category_4,
+          category_5,
+          category_6,
+          category_7,
+          category_8,
+          category_9,
+          category_10,
+          category_11,
+          category_12,
+          category_13,
           matchlevel
         });
       });
