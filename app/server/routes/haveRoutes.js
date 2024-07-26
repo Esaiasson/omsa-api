@@ -11,6 +11,188 @@ export const getHaveRoutes = () => {
     res.status(200).send(have);
   });
 
+  //Finding two part matches based on singular 'user_id'. 
+  router.get('/twoPartMatchHave', async (req, res, next) => {
+    const { user_id } = req.body;  
+  
+    if (!user_id) {
+      return res.status(400).json({ message: 'Missing required user_id parameter' });
+    }
+
+    //SQL query that searches for two-part matches through 13 potential categories
+    try {
+      const [results, metadata] = await db.query(`
+      with matches as
+      (
+      select h_p1.id as p1_id, h_p1.user_id p1_user_id, h_p1.article_id p1_have_article_id, w_p1.article_id p1_wish_article_id, w_p2.id p2_id, w_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, w_p2.article_id p2_wish_article_id, '1' as matchlevel
+      from wish w_p2
+      inner join have h_p1 on w_p2.category_1 = h_p1.category_1
+      inner join wish w_p1 on h_p1.user_id = w_p1.user_id 
+      inner join have h_p2 on w_p1.category_1 = h_p2.category_1 and h_p2.user_id = w_p2.user_id
+      AND h_p1.user_id = :user_id
+      and h_p1.user_id != w_p2.user_id 
+      union
+      /*category-2*/
+      select h_p1.id as p1_id, h_p1.user_id p1_user_id, h_p1.article_id p1_have_article_id, w_p1.article_id p1_wish_article_id, w_p2.id p2_id, w_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, w_p2.article_id p2_wish_article_id, '2' as matchlevel
+      from wish w_p2
+      inner join have h_p1 on w_p2.category_2 = h_p1.category_2
+      inner join wish w_p1 on h_p1.user_id = w_p1.user_id 
+      inner join have h_p2 on w_p1.category_2 = h_p2.category_2 and h_p2.user_id = w_p2.user_id
+      AND h_p1.user_id = :user_id
+      and h_p1.user_id != w_p2.user_id 
+      union
+      /*category-3*/
+      select h_p1.id as p1_id, h_p1.user_id p1_user_id, h_p1.article_id p1_have_article_id, w_p1.article_id p1_wish_article_id, w_p2.id p2_id, w_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, w_p2.article_id p2_wish_article_id, '3' as matchlevel
+      from wish w_p2
+      inner join have h_p1 on w_p2.category_3 = h_p1.category_3
+      inner join wish w_p1 on h_p1.user_id = w_p1.user_id 
+      inner join have h_p2 on w_p1.category_3 = h_p2.category_3 and h_p2.user_id = w_p2.user_id
+      AND h_p1.user_id = :user_id
+      and h_p1.user_id != w_p2.user_id 
+      union
+      /*category-4*/
+      select h_p1.id as p1_id, h_p1.user_id p1_user_id, h_p1.article_id p1_have_article_id, w_p1.article_id p1_wish_article_id, w_p2.id p2_id, w_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, w_p2.article_id p2_wish_article_id, '4' as matchlevel
+      from wish w_p2
+      inner join have h_p1 on w_p2.category_4 = h_p1.category_4
+      inner join wish w_p1 on h_p1.user_id = w_p1.user_id 
+      inner join have h_p2 on w_p1.category_4 = h_p2.category_4 and h_p2.user_id = w_p2.user_id
+      AND h_p1.user_id = :user_id
+      and h_p1.user_id != w_p2.user_id 
+      union
+      /*category-5*/
+      select h_p1.id as p1_id, h_p1.user_id p1_user_id, h_p1.article_id p1_have_article_id, w_p1.article_id p1_wish_article_id, w_p2.id p2_id, w_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, w_p2.article_id p2_wish_article_id, '5' as matchlevel
+      from wish w_p2
+      inner join have h_p1 on w_p2.category_5 = h_p1.category_5
+      inner join wish w_p1 on h_p1.user_id = w_p1.user_id 
+      inner join have h_p2 on w_p1.category_5 = h_p2.category_5 and h_p2.user_id = w_p2.user_id
+      AND h_p1.user_id = :user_id
+      and h_p1.user_id != w_p2.user_id 
+      union
+      /*category-6*/
+      select h_p1.id as p1_id, h_p1.user_id p1_user_id, h_p1.article_id p1_have_article_id, w_p1.article_id p1_wish_article_id, w_p2.id p2_id, w_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, w_p2.article_id p2_wish_article_id, '6' as matchlevel
+      from wish w_p2
+      inner join have h_p1 on w_p2.category_6 = h_p1.category_6
+      inner join wish w_p1 on h_p1.user_id = w_p1.user_id 
+      inner join have h_p2 on w_p1.category_6 = h_p2.category_6 and h_p2.user_id = w_p2.user_id
+      AND h_p1.user_id = :user_id
+      and h_p1.user_id != w_p2.user_id 
+      union
+      /*category-7*/
+      select h_p1.id as p1_id, h_p1.user_id p1_user_id, h_p1.article_id p1_have_article_id, w_p1.article_id p1_wish_article_id, w_p2.id p2_id, w_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, w_p2.article_id p2_wish_article_id, '7' as matchlevel
+      from wish w_p2
+      inner join have h_p1 on w_p2.category_7 = h_p1.category_7
+      inner join wish w_p1 on h_p1.user_id = w_p1.user_id 
+      inner join have h_p2 on w_p1.category_7 = h_p2.category_7 and h_p2.user_id = w_p2.user_id
+      AND h_p1.user_id = :user_id
+      and h_p1.user_id != w_p2.user_id 
+      union
+      /*category-8*/
+      select h_p1.id as p1_id, h_p1.user_id p1_user_id, h_p1.article_id p1_have_article_id, w_p1.article_id p1_wish_article_id, w_p2.id p2_id, w_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, w_p2.article_id p2_wish_article_id, '8' as matchlevel
+      from wish w_p2
+      inner join have h_p1 on w_p2.category_8 = h_p1.category_8
+      inner join wish w_p1 on h_p1.user_id = w_p1.user_id 
+      inner join have h_p2 on w_p1.category_8 = h_p2.category_8 and h_p2.user_id = w_p2.user_id
+      AND h_p1.user_id = :user_id
+      and h_p1.user_id != w_p2.user_id 
+      union
+      /*category-9*/
+      select h_p1.id as p1_id, h_p1.user_id p1_user_id, h_p1.article_id p1_have_article_id, w_p1.article_id p1_wish_article_id, w_p2.id p2_id, w_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, w_p2.article_id p2_wish_article_id, '9' as matchlevel
+      from wish w_p2
+      inner join have h_p1 on w_p2.category_9 = h_p1.category_9
+      inner join wish w_p1 on h_p1.user_id = w_p1.user_id 
+      inner join have h_p2 on w_p1.category_9 = h_p2.category_9 and h_p2.user_id = w_p2.user_id
+      AND h_p1.user_id = :user_id
+      and h_p1.user_id != w_p2.user_id 
+      union
+      /*category-10*/
+      select h_p1.id as p1_id, h_p1.user_id p1_user_id, h_p1.article_id p1_have_article_id, w_p1.article_id p1_wish_article_id, w_p2.id p2_id, w_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, w_p2.article_id p2_wish_article_id, '10' as matchlevel
+      from wish w_p2
+      inner join have h_p1 on w_p2.category_10 = h_p1.category_10
+      inner join wish w_p1 on h_p1.user_id = w_p1.user_id 
+      inner join have h_p2 on w_p1.category_10 = h_p2.category_10 and h_p2.user_id = w_p2.user_id
+      AND h_p1.user_id = :user_id
+      and h_p1.user_id != w_p2.user_id 
+      union
+      /*category-11*/
+      select h_p1.id as p1_id, h_p1.user_id p1_user_id, h_p1.article_id p1_have_article_id, w_p1.article_id p1_wish_article_id, w_p2.id p2_id, w_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, w_p2.article_id p2_wish_article_id, '11' as matchlevel
+      from wish w_p2
+      inner join have h_p1 on w_p2.category_11 = h_p1.category_11
+      inner join wish w_p1 on h_p1.user_id = w_p1.user_id 
+      inner join have h_p2 on w_p1.category_11 = h_p2.category_11 and h_p2.user_id = w_p2.user_id
+      AND h_p1.user_id = :user_id
+      and h_p1.user_id != w_p2.user_id 
+      union
+      /*category-12*/
+      select h_p1.id as p1_id, h_p1.user_id p1_user_id, h_p1.article_id p1_have_article_id, w_p1.article_id p1_wish_article_id, w_p2.id p2_id, w_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, w_p2.article_id p2_wish_article_id, '12' as matchlevel
+      from wish w_p2
+      inner join have h_p1 on w_p2.category_12 = h_p1.category_12
+      inner join wish w_p1 on h_p1.user_id = w_p1.user_id 
+      inner join have h_p2 on w_p1.category_12 = h_p2.category_12 and h_p2.user_id = w_p2.user_id
+      AND h_p1.user_id = :user_id
+      and h_p1.user_id != w_p2.user_id 
+      union
+      /*category-13*/
+      select h_p1.id as p1_id, h_p1.user_id p1_user_id, h_p1.article_id p1_have_article_id, w_p1.article_id p1_wish_article_id, w_p2.id p2_id, w_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, w_p2.article_id p2_wish_article_id, '13' as matchlevel
+      from wish w_p2
+      inner join have h_p1 on w_p2.category_13 = h_p1.category_13
+      inner join wish w_p1 on h_p1.user_id = w_p1.user_id 
+      inner join have h_p2 on w_p1.category_13 = h_p2.category_13 and h_p2.user_id = w_p2.user_id
+      AND h_p1.user_id = :user_id
+      and h_p1.user_id != w_p2.user_id 
+      )
+      select * from matches
+      order by cast(matchlevel as int) desc`, {
+          replacements: { user_id },
+          type: db.QueryTypes.RAW
+      });
+
+      //Object created for sending API-response
+      let sortedMatches = {
+        1: [],
+        2: [],
+        3: [],
+        4: [],
+        5: [],
+        6: [],
+        7: [],
+        8: [],
+        9: [],
+        10: [],
+        11: [],
+        12: [],
+        13: []
+      };
+
+      // Process results to populate sortedMatches
+      results.forEach(item => {
+        let { 
+          p1_user_id,
+          p1_wish_article_id,
+          p2_user_id,
+          p2_have_article_id,
+          p1_have_article_id,
+          matchlevel
+        } = item;
+        matchlevel = parseInt(matchlevel)
+        
+        sortedMatches[matchlevel].push({
+          p1_user_id,
+          p1_wish_article_id,
+          p2_user_id,
+          p2_have_article_id,
+          p1_have_article_id,
+          matchlevel
+        });
+          
+      });
+      console.log(sortedMatches);
+      res.status(200).json(results);
+    } catch (error) {
+      console.error('Error fetching matches:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  });
+
   //function for finding matches based on singular 'article_id'. 
   router.get('/getArticle', async (req, res, next) => {
     const { article_id } = req.body;  
