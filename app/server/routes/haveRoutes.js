@@ -13,20 +13,20 @@ export const getHaveRoutes = () => {
   });
 
   router.delete('/deleteHave', async (req, res, next) => {
-    const { id } = req.body;
+    const { article_id } = req.body;
     
-    if (!id) {
-      return res.status(400).json({ message: 'Missing required id parameter' });
+    if (!article_id) {
+      return res.status(400).json({ message: 'Missing required article_id parameter' });
     }
 
-    if ( !validate(id)) {
+    if ( !validate(article_id)) {
       return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
     } 
 
     try {
       const result = await object.have.destroy({
         where: {
-          id: id,
+          article_id: article_id,
         }
       });
 
