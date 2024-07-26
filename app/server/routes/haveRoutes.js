@@ -14,7 +14,7 @@ export const getHaveRoutes = () => {
 
   
 
-  router.delete('/', async (req, res, next) => {
+  router.delete('/deleteHave', async (req, res, next) => {
     const { id } = req.body;
     
     if (!id) {
@@ -25,9 +25,20 @@ export const getHaveRoutes = () => {
       return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
     } 
 
+    try {
+      await object.have.destroy({
+        where: {
+          id: id,
+        }
+      });
 
+      res.sendStatus(204);
+    } catch (error) {
+      console.error('Error deleting have', error);
+      res.status(500).json('Internal Server Error');
+    }
 
-  })
+  });
 
   //Finding two part matches based on singular 'user_id'. 
   router.get('/twoPartMatchHave', async (req, res, next) => {
@@ -685,7 +696,7 @@ export const getHaveRoutes = () => {
         return res.status(404).json('No have created');
       }
   
-      res.status(201).send(result);
+      res.status(201);
     } catch (error) {
       console.error('Error creating have', error);
       res.status(500).json('Internal Server Error');
