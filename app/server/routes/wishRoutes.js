@@ -12,6 +12,32 @@ export const getWishRoutes = () => {
       res.status(200).send(wish);
   });
 
+  router.delete('/deleteWish', async (req, res, next) => {
+    const { id } = req.body;
+    
+    if (!id) {
+      return res.status(400).json({ message: 'Missing required id parameter' });
+    }
+
+    if ( !validate(id)) {
+      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
+    } 
+
+    try {
+      await object.wish.destroy({
+        where: {
+          id: id,
+        }
+      });
+
+      res.sendStatus(204);
+    } catch (error) {
+      console.error('Error deleting wish', error);
+      res.status(500).json('Internal Server Error');
+    }
+
+  });
+
   router.get('/twoPartMatchWish', async (req, res, next) => {
     const { user_id } = req.body;  
   

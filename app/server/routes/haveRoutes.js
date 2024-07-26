@@ -12,8 +12,6 @@ export const getHaveRoutes = () => {
     res.status(200).send(have);
   });
 
-  
-
   router.delete('/deleteHave', async (req, res, next) => {
     const { id } = req.body;
     
