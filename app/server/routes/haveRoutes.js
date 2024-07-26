@@ -24,11 +24,15 @@ export const getHaveRoutes = () => {
     } 
 
     try {
-      await object.have.destroy({
+      const result = await object.have.destroy({
         where: {
           id: id,
         }
       });
+
+      if (result === 0) {
+        return res.status(404).json({ message: 'Have not found' });
+      }
 
       res.sendStatus(204);
     } catch (error) {

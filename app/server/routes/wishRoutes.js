@@ -24,11 +24,15 @@ export const getWishRoutes = () => {
     } 
 
     try {
-      await object.wish.destroy({
+      const result = await object.wish.destroy({
         where: {
           id: id,
         }
       });
+
+      if (result === 0) {
+        return res.status(404).json({ message: 'Wish not found' });
+      }
 
       res.sendStatus(204);
     } catch (error) {
