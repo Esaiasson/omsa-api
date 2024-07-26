@@ -12,6 +12,7 @@ export const getHaveRoutes = () => {
     res.status(200).send(have);
   });
 
+  //Function for updating have based on singular article_id
   router.put('/updateHave', async (req, res, next) => {
     const { 
       article_id, 
@@ -38,7 +39,7 @@ export const getHaveRoutes = () => {
     if (!validate(article_id)) {
       return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
     }
-  
+
     try {
         const updatedHave = await object.have.findOne({ where: {article_id: article_id} });
 

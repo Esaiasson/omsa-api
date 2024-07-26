@@ -12,6 +12,7 @@ export const getWishRoutes = () => {
       res.status(200).send(wish);
   });
 
+  //Function for updating wish based on singular article_id
   router.put('/updateWish', async (req, res, next) => {
     const { 
       article_id, 
