@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as object from '../models/objectIndex.js';
 import { db } from '../database/databaseConnection.js';
+import validate from 'uuid-validate';
 
 export const getHaveRoutes = () => {
   const router = Router();
@@ -11,13 +12,34 @@ export const getHaveRoutes = () => {
     res.status(200).send(have);
   });
 
+  
+
+  router.delete('/', async (req, res, next) => {
+    const { id } = req.body;
+    
+    if (!id) {
+      return res.status(400).json({ message: 'Missing required id parameter' });
+    }
+
+    if ( !validate(id)) {
+      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
+    } 
+
+
+
+  })
+
   //Finding two part matches based on singular 'user_id'. 
   router.get('/twoPartMatchHave', async (req, res, next) => {
     const { user_id } = req.body;  
-  
+    
     if (!user_id) {
       return res.status(400).json({ message: 'Missing required user_id parameter' });
     }
+
+    if ( !validate(user_id)) {
+      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
+    } 
 
     //SQL query that searches for two-part matches through 13 potential categories
     try {
@@ -200,6 +222,10 @@ export const getHaveRoutes = () => {
     if (!article_id) {
       return res.status(400).json({ message: 'Missing required article_id parameter' });
     }
+
+    if ( !validate(article_id)) {
+      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
+    } 
 
     //SQL query that searches through 13 potential categories
     try {
@@ -404,6 +430,10 @@ export const getHaveRoutes = () => {
     if (!user_id) {
       return res.status(400).json({ message: 'Missing required user_id parameter' });
     }
+
+    if ( !validate(user_id)) {
+      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
+    } 
   
     //SQL query that searches through 13 potential categories
     try {
@@ -626,6 +656,10 @@ export const getHaveRoutes = () => {
     if (!id || !user_id || !category_1) {
       return res.status(400).json('Missing required fields');
     }
+
+    if (!validate(id) || !validate(user_id)) {
+      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
+    } 
   
     try {
       const result = await object.have.create({

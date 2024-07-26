@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as object from '../models/objectIndex.js';
 import { db } from '../database/databaseConnection.js';
+import validate from 'uuid-validate';
 
 export const getWishRoutes = () => {
   const router = Router();
@@ -17,6 +18,10 @@ export const getWishRoutes = () => {
     if (!user_id) {
       return res.status(400).json({ message: 'Missing required user_id parameter' });
     }
+
+    if (!validate(user_id)) {
+      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
+    } 
 
     //SQL query that searches for two-part matches through 13 potential categories
     try {
@@ -254,6 +259,10 @@ export const getWishRoutes = () => {
       return res.status(400).json({ message: 'Missing required user_id parameter' });
     }
 
+    if (!validate(user_id)) {
+      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
+    } 
+
     //SQL query that searches through 13 potential categories
     try {
       const [results, metadata] = await db.query(`
@@ -473,6 +482,10 @@ export const getWishRoutes = () => {
     if (!id || !user_id || !category_1) {
       return res.status(400).json('Missing required fields');
     }
+
+    if (!validate(id) || !validate(user_id)) {
+      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
+    } 
 
     try {
       const result = await object.wish.create({
