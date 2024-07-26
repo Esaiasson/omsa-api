@@ -3,6 +3,16 @@ import * as object from '../models/objectIndex.js';
 import { db } from '../database/databaseConnection.js';
 import validate from 'uuid-validate';
 
+function validateInput(input) {
+  if (!input) {
+      return { valid: false, message: 'Input cannot be empty' };
+  }
+  if (!validate(input)) {
+      return { valid: false, message: 'Input must be a valid UUID' };
+  }
+  return { valid: true };
+}
+
 export const getWishRoutes = () => {
   const router = Router();
 
@@ -31,14 +41,7 @@ export const getWishRoutes = () => {
       category_13,
      } = req.body;
   
-    // Validate article_id
-    if (!article_id) {
-      return res.status(400).json({ message: 'Missing required article_id parameter' });
-    }
-  
-    if (!validate(article_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    }
+    validateInput(article_id);
   
     try {
         const updatedWish = await object.wish.findOne({ where: {article_id: article_id} });
@@ -68,19 +71,15 @@ export const getWishRoutes = () => {
       res.status(500).json({ message: 'Internal Server Error' });
     }
   });
+
  router.get('/threePartMatchWish', async (req, res, next) => {
     const { user_id, category_range } = req.body;  
-  
-    if (!user_id) {
-      return res.status(400).json({ message: 'Missing required user_id parameter' });
-    }
+
+    validateInput(user_id);
+    //Catoegoy rang ska flyttas till functionen när det blir uuid!!!
     if(!category_range){
       return res.status(400).json({ message: 'Missing required category_range parameter' });
     }
-
-    if (!validate(user_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    } 
 
     let sqlQuery = 'with matches as ('
     let nmbrOfCategories = parseInt(category_range)
@@ -184,13 +183,7 @@ export const getWishRoutes = () => {
   router.delete('/deleteWish', async (req, res, next) => {
     const { article_id } = req.body;
     
-    if (!article_id) {
-      return res.status(400).json({ message: 'Missing required article_id parameter' });
-    }
-
-    if ( !validate(article_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    } 
+    validateInput(article_id);
 
     try {
       const result = await object.wish.destroy({
@@ -214,13 +207,7 @@ export const getWishRoutes = () => {
   router.get('/twoPartMatchWish', async (req, res, next) => {
     const { user_id } = req.body;  
   
-    if (!user_id) {
-      return res.status(400).json({ message: 'Missing required user_id parameter' });
-    }
-
-    if (!validate(user_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    } 
+    validateInput(user_id);
 
     //SQL query that searches for two-part matches through 13 potential categories
     try {
@@ -465,14 +452,8 @@ export const getWishRoutes = () => {
   //Function for finding users that have what 'user_id' is searching for. Matches are found based on a singular wish request. 
   router.get('/matchForWish', async (req, res, next) => {
     const { user_id } = req.body;  
-  
-    if (!user_id) {
-      return res.status(400).json({ message: 'Missing required user_id parameter' });
-    }
-
-    if (!validate(user_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    } 
+    
+    validateInput(user_id);
 
     //SQL query that searches through 13 potential categories
     try {
@@ -690,13 +671,12 @@ export const getWishRoutes = () => {
       category_13 
     } = req.body;
 
+    validateInput(id);
+    validateInput(user_id);
+    //hit ska även kategorier flyttas!!!
     if (!id || !user_id || !category_1) {
       return res.status(400).json('Missing required fields');
     }
-
-    if (!validate(id) || !validate(user_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    } 
 
     try {
       const result = await object.wish.create({

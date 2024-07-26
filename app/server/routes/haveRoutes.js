@@ -3,6 +3,16 @@ import * as object from '../models/objectIndex.js';
 import { db } from '../database/databaseConnection.js';
 import validate from 'uuid-validate';
 
+function validateInput(input) {
+  if (!input) {
+      return { valid: false, message: 'Input cannot be empty' };
+  }
+  if (!validate(input)) {
+      return { valid: false, message: 'Input must be a valid UUID' };
+  }
+  return { valid: true };
+}
+
 export const getHaveRoutes = () => {
   const router = Router();
 
@@ -72,13 +82,7 @@ export const getHaveRoutes = () => {
   router.delete('/deleteHave', async (req, res, next) => {
     const { article_id } = req.body;
     
-    if (!article_id) {
-      return res.status(400).json({ message: 'Missing required article_id parameter' });
-    }
-
-    if ( !validate(article_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    } 
+    validateInput(article_id);
 
     try {
       const result = await object.have.destroy({
@@ -102,14 +106,8 @@ export const getHaveRoutes = () => {
   //Finding two part matches based on singular 'user_id'. 
   router.get('/twoPartMatchHave', async (req, res, next) => {
     const { user_id } = req.body;  
-    
-    if (!user_id) {
-      return res.status(400).json({ message: 'Missing required user_id parameter' });
-    }
 
-    if ( !validate(user_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    } 
+    validateInput(user_id);
 
     //SQL query that searches for two-part matches through 13 potential categories
     try {
@@ -289,13 +287,7 @@ export const getHaveRoutes = () => {
   router.get('/getArticle', async (req, res, next) => {
     const { article_id } = req.body;  
 
-    if (!article_id) {
-      return res.status(400).json({ message: 'Missing required article_id parameter' });
-    }
-
-    if ( !validate(article_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    } 
+    validateInput(article_id);
 
     //SQL query that searches through 13 potential categories
     try {
@@ -496,15 +488,9 @@ export const getHaveRoutes = () => {
   //Function for finding users that wants what 'user_id' has. Matches are found based on a singular have request. 
   router.get('/matchForHave', async (req, res, next) => {
     const { user_id } = req.body;  
-  
-    if (!user_id) {
-      return res.status(400).json({ message: 'Missing required user_id parameter' });
-    }
 
-    if ( !validate(user_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    } 
-  
+    validateInput(user_id);
+
     //SQL query that searches through 13 potential categories
     try {
       const [results, metadata] = await db.query(`
@@ -722,14 +708,10 @@ export const getHaveRoutes = () => {
       category_13 
     } = req.body;
   
-    // Validate the input data
-    if (!id || !user_id || !category_1) {
-      return res.status(400).json('Missing required fields');
-    }
-
-    if (!validate(id) || !validate(user_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    } 
+    //Så småningom ska här vara en för category också!
+    validateInput(id);
+    validateInput(user_id);
+    //Så småningom ska här vara en för category också!
   
     try {
       const result = await object.have.create({
