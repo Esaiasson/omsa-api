@@ -12,6 +12,62 @@ export const getWishRoutes = () => {
       res.status(200).send(wish);
   });
 
+  router.put('/updateWish', async (req, res, next) => {
+    const { 
+      article_id, 
+      category_1, 
+      category_2, 
+      category_3,
+      category_4,
+      category_5,
+      category_6,
+      category_7,
+      category_8,
+      category_9,
+      category_10,
+      category_11,
+      category_12,
+      category_13,
+     } = req.body;
+  
+    // Validate article_id
+    if (!article_id) {
+      return res.status(400).json({ message: 'Missing required article_id parameter' });
+    }
+  
+    if (!validate(article_id)) {
+      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
+    }
+  
+    try {
+        const updatedWish = await object.wish.findOne({ where: {article_id: article_id} });
+
+        updatedWish.set({
+          category_1: category_1,
+          category_2: category_2,
+          category_3: category_3,
+          category_4: category_4,
+          category_5: category_5,
+          category_6: category_6,
+          category_7: category_7,
+          category_8: category_8,
+          category_9: category_9,
+          category_10: category_10,
+          category_11: category_11,
+          category_12: category_12,
+          category_13: category_13
+        });
+      
+        await updatedWish.save();
+  
+      // Send back the updated entity
+      res.status(200).json(updatedWish);
+    } catch (error) {
+      console.error('Error updating wish', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  });
+
   router.delete('/deleteWish', async (req, res, next) => {
     const { article_id } = req.body;
     
