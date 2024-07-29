@@ -4,12 +4,15 @@ import { db } from '../database/databaseConnection.js';
 import validate from 'uuid-validate';
 
 function validateInput(input) {
+  
   if (!input) {
       return { valid: false, message: 'Input cannot be empty' };
   }
+  console.log('HÄÄÄÄÄÄÄÄÄÄÄR');
   if (!validate(input)) {
       return { valid: false, message: 'Input must be a valid UUID' };
   }
+
   return { valid: true };
 }
 
@@ -40,7 +43,8 @@ export const getWishRoutes = () => {
       category_12,
       category_13,
      } = req.body;
-  
+    
+     console.log('HIIIIIIIIIT');
     validateInput(article_id);
   
     try {
