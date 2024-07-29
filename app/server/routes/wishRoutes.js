@@ -99,180 +99,56 @@ export const getWishRoutes = () => {
 
   });
 
-  router.get('/twoPartMatchWish', async (req, res, next) => {
-    const { user_id } = req.body;  
+
+ router.get('/twoPartMatchWish', async (req, res, next) => {
+    const { user_id, category_range } = req.body;  
   
     if (!user_id) {
       return res.status(400).json({ message: 'Missing required user_id parameter' });
+    }
+    if(!category_range){
+      return res.status(400).json({ message: 'Missing required category_range parameter' });
     }
 
     if (!validate(user_id)) {
       return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
     } 
 
-    //SQL query that searches for two-part matches through 13 potential categories
-    try {
-      const [results, metadata] = await db.query(`
-          with matches as
-          (
-          select w_p1.id as p1_id, w_p1.user_id p1_user_id, w_p1.article_id p1_wish_article_id, w_p1.category_1 p1_wish_category_1, w_p1.category_2 p1_wish_category_2, w_p1.category_3 p1_wish_category_3, w_p1.category_4 p1_wish_category_4, w_p1.category_5 p1_wish_category_5, w_p1.category_6 p1_wish_category_6, w_p1.category_7 p1_wish_category_7, w_p1.category_8 p1_wish_category_8, w_p1.category_9 p1_wish_category_9, w_p1.category_10 p1_wish_category_10, w_p1.category_11 p1_wish_category_11, w_p1.category_12 p1_wish_category_12, w_p1.category_13 p1_wish_category_13, h_p2.id p2_id, h_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, h_p2.category_1 p2_have_category_1, h_p2.category_2 p2_have_category_2, h_p2.category_2 p2_have_category_3, h_p2.category_1 p2_have_category_3, h_p2.category_4 p2_have_category_4, h_p2.category_5 p2_have_category_5, h_p2.category_6 p2_have_category_6, h_p2.category_7 p2_have_category_7, h_p2.category_8 p2_have_category_8, h_p2.category_9 p2_have_category_9, h_p2.category_10 p2_have_category_10, h_p2.category_11 p2_have_category_11, h_p2.category_12 p2_have_category_12, h_p2.category_13 p2_have_category_13, h_p1.article_id p1_have_article_id, h_p1.category_1 p1_have_category_1, h_p1.category_2 p1_have_category_2, h_p1.category_2 p1_have_category_3, h_p1.category_1 p1_have_category_3, h_p1.category_4 p1_have_category_4, h_p1.category_5 p1_have_category_5, h_p1.category_6 p1_have_category_6, h_p1.category_7 p1_have_category_7, h_p1.category_8 p1_have_category_8, h_p1.category_9 p1_have_category_9, h_p1.category_10 p1_have_category_10, h_p1.category_11 p1_have_category_11, h_p1.category_12 p1_have_category_12, h_p1.category_13 p1_have_category_13, '1' as matchlevel  from have h_p2
-          inner join wish w_p1 on h_p2.category_1 = w_p1.category_1
+    let sqlQuery = 'with matches as ('
+    let nmbrOfCategories = parseInt(category_range)
+      
+    for (let i = 1; i <= nmbrOfCategories; i++){ 
+      sqlQuery = sqlQuery.concat( 
+        `
+          select w_p1.id as p1_id, w_p1.user_id p1_user_id, w_p1.article_id p1_wish_article_id, w_p1.category_1 p1_wish_category_1, w_p1.category_2 p1_wish_category_2, w_p1.category_3 p1_wish_category_3, w_p1.category_4 p1_wish_category_4, w_p1.category_5 p1_wish_category_5, w_p1.category_6 p1_wish_category_6, w_p1.category_7 p1_wish_category_7, w_p1.category_8 p1_wish_category_8, w_p1.category_9 p1_wish_category_9, w_p1.category_10 p1_wish_category_10, w_p1.category_11 p1_wish_category_11, w_p1.category_12 p1_wish_category_12, w_p1.category_13 p1_wish_category_13, h_p2.id p2_id, h_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, h_p2.category_1 p2_have_category_1, h_p2.category_2 p2_have_category_2, h_p2.category_2 p2_have_category_3, h_p2.category_1 p2_have_category_3, h_p2.category_4 p2_have_category_4, h_p2.category_5 p2_have_category_5, h_p2.category_6 p2_have_category_6, h_p2.category_7 p2_have_category_7, h_p2.category_8 p2_have_category_8, h_p2.category_9 p2_have_category_9, h_p2.category_10 p2_have_category_10, h_p2.category_11 p2_have_category_11, h_p2.category_12 p2_have_category_12, h_p2.category_13 p2_have_category_13, h_p1.article_id p1_have_article_id, h_p1.category_1 p1_have_category_1, h_p1.category_2 p1_have_category_2, h_p1.category_2 p1_have_category_3, h_p1.category_1 p1_have_category_3, h_p1.category_4 p1_have_category_4, h_p1.category_5 p1_have_category_5, h_p1.category_6 p1_have_category_6, h_p1.category_7 p1_have_category_7, h_p1.category_8 p1_have_category_8, h_p1.category_9 p1_have_category_9, h_p1.category_10 p1_have_category_10, h_p1.category_11 p1_have_category_11, h_p1.category_12 p1_have_category_12, h_p1.category_13 p1_have_category_13, '${i}' as matchlevel  from have h_p2
+          inner join wish w_p1 on h_p2.category_${i} = w_p1.category_${i}
           inner join have h_p1 on w_p1.user_id = h_p1.user_id 
           where exists(
             select * from wish w_p2
             where w_p2.user_id = h_p2.user_id
-            and h_p1.category_1 = w_p2.category_1 
+            and h_p1.category_${i} = w_p2.category_${i} 
           )
           AND w_p1.user_id = :user_id
           and w_p1.user_id != h_p2.user_id 
-          union
-          /*category-2*/
-          select w_p1.id as p1_id, w_p1.user_id p1_user_id, w_p1.article_id p1_wish_article_id, w_p1.category_1 p1_wish_category_1, w_p1.category_2 p1_wish_category_2, w_p1.category_3 p1_wish_category_3, w_p1.category_4 p1_wish_category_4, w_p1.category_5 p1_wish_category_5, w_p1.category_6 p1_wish_category_6, w_p1.category_7 p1_wish_category_7, w_p1.category_8 p1_wish_category_8, w_p1.category_9 p1_wish_category_9, w_p1.category_10 p1_wish_category_10, w_p1.category_11 p1_wish_category_11, w_p1.category_12 p1_wish_category_12, w_p1.category_13 p1_wish_category_13, h_p2.id p2_id, h_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, h_p2.category_1 p2_have_category_1, h_p2.category_2 p2_have_category_2, h_p2.category_2 p2_have_category_3, h_p2.category_1 p2_have_category_3, h_p2.category_4 p2_have_category_4, h_p2.category_5 p2_have_category_5, h_p2.category_6 p2_have_category_6, h_p2.category_7 p2_have_category_7, h_p2.category_8 p2_have_category_8, h_p2.category_9 p2_have_category_9, h_p2.category_10 p2_have_category_10, h_p2.category_11 p2_have_category_11, h_p2.category_12 p2_have_category_12, h_p2.category_13 p2_have_category_13, h_p1.article_id p1_have_article_id, h_p1.category_1 p1_have_category_1, h_p1.category_2 p1_have_category_2, h_p1.category_2 p1_have_category_3, h_p1.category_1 p1_have_category_3, h_p1.category_4 p1_have_category_4, h_p1.category_5 p1_have_category_5, h_p1.category_6 p1_have_category_6, h_p1.category_7 p1_have_category_7, h_p1.category_8 p1_have_category_8, h_p1.category_9 p1_have_category_9, h_p1.category_10 p1_have_category_10, h_p1.category_11 p1_have_category_11, h_p1.category_12 p1_have_category_12, h_p1.category_13 p1_have_category_13, '2' as matchlevel  from have h_p2
-          inner join wish w_p1 on h_p2.category_2 = w_p1.category_2
-          inner join have h_p1 on w_p1.user_id = h_p1.user_id 
-          where exists(
-            select * from wish w_p2
-            where w_p2.user_id = h_p2.user_id
-            and h_p1.category_2 = w_p2.category_2
+        `
+      )
+      if(i !== nmbrOfCategories){
+        sqlQuery = sqlQuery.concat('union')
+      }
+      else(
+        sqlQuery = sqlQuery.concat(`
           )
-          AND w_p1.user_id = :user_id
-          and w_p1.user_id != h_p2.user_id
-            union
-          /*category-3*/
-          select w_p1.id as p1_id, w_p1.user_id p1_user_id, w_p1.article_id p1_wish_article_id, w_p1.category_1 p1_wish_category_1, w_p1.category_2 p1_wish_category_2, w_p1.category_3 p1_wish_category_3, w_p1.category_4 p1_wish_category_4, w_p1.category_5 p1_wish_category_5, w_p1.category_6 p1_wish_category_6, w_p1.category_7 p1_wish_category_7, w_p1.category_8 p1_wish_category_8, w_p1.category_9 p1_wish_category_9, w_p1.category_10 p1_wish_category_10, w_p1.category_11 p1_wish_category_11, w_p1.category_12 p1_wish_category_12, w_p1.category_13 p1_wish_category_13, h_p2.id p2_id, h_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, h_p2.category_1 p2_have_category_1, h_p2.category_2 p2_have_category_2, h_p2.category_2 p2_have_category_3, h_p2.category_1 p2_have_category_3, h_p2.category_4 p2_have_category_4, h_p2.category_5 p2_have_category_5, h_p2.category_6 p2_have_category_6, h_p2.category_7 p2_have_category_7, h_p2.category_8 p2_have_category_8, h_p2.category_9 p2_have_category_9, h_p2.category_10 p2_have_category_10, h_p2.category_11 p2_have_category_11, h_p2.category_12 p2_have_category_12, h_p2.category_13 p2_have_category_13, h_p1.article_id p1_have_article_id, h_p1.category_1 p1_have_category_1, h_p1.category_2 p1_have_category_2, h_p1.category_2 p1_have_category_3, h_p1.category_1 p1_have_category_3, h_p1.category_4 p1_have_category_4, h_p1.category_5 p1_have_category_5, h_p1.category_6 p1_have_category_6, h_p1.category_7 p1_have_category_7, h_p1.category_8 p1_have_category_8, h_p1.category_9 p1_have_category_9, h_p1.category_10 p1_have_category_10, h_p1.category_11 p1_have_category_11, h_p1.category_12 p1_have_category_12, h_p1.category_13 p1_have_category_13, '3' as matchlevel  from have h_p2
-          inner join wish w_p1 on h_p2.category_3 = w_p1.category_3
-          inner join have h_p1 on w_p1.user_id = h_p1.user_id 
-          where exists(
-            select * from wish w_p2
-            where w_p2.user_id = h_p2.user_id
-            and h_p1.category_3 = w_p2.category_4
-          )
-          AND w_p1.user_id = :user_id
-          and w_p1.user_id != h_p2.user_id
-            union
-          /*category-4*/
-          select w_p1.id as p1_id, w_p1.user_id p1_user_id, w_p1.article_id p1_wish_article_id, w_p1.category_1 p1_wish_category_1, w_p1.category_2 p1_wish_category_2, w_p1.category_3 p1_wish_category_3, w_p1.category_4 p1_wish_category_4, w_p1.category_5 p1_wish_category_5, w_p1.category_6 p1_wish_category_6, w_p1.category_7 p1_wish_category_7, w_p1.category_8 p1_wish_category_8, w_p1.category_9 p1_wish_category_9, w_p1.category_10 p1_wish_category_10, w_p1.category_11 p1_wish_category_11, w_p1.category_12 p1_wish_category_12, w_p1.category_13 p1_wish_category_13, h_p2.id p2_id, h_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, h_p2.category_1 p2_have_category_1, h_p2.category_2 p2_have_category_2, h_p2.category_2 p2_have_category_3, h_p2.category_1 p2_have_category_3, h_p2.category_4 p2_have_category_4, h_p2.category_5 p2_have_category_5, h_p2.category_6 p2_have_category_6, h_p2.category_7 p2_have_category_7, h_p2.category_8 p2_have_category_8, h_p2.category_9 p2_have_category_9, h_p2.category_10 p2_have_category_10, h_p2.category_11 p2_have_category_11, h_p2.category_12 p2_have_category_12, h_p2.category_13 p2_have_category_13, h_p1.article_id p1_have_article_id, h_p1.category_1 p1_have_category_1, h_p1.category_2 p1_have_category_2, h_p1.category_2 p1_have_category_3, h_p1.category_1 p1_have_category_3, h_p1.category_4 p1_have_category_4, h_p1.category_5 p1_have_category_5, h_p1.category_6 p1_have_category_6, h_p1.category_7 p1_have_category_7, h_p1.category_8 p1_have_category_8, h_p1.category_9 p1_have_category_9, h_p1.category_10 p1_have_category_10, h_p1.category_11 p1_have_category_11, h_p1.category_12 p1_have_category_12, h_p1.category_13 p1_have_category_13, '4' as matchlevel  from have h_p2
-          inner join wish w_p1 on h_p2.category_4 = w_p1.category_4
-          inner join have h_p1 on w_p1.user_id = h_p1.user_id 
-          where exists(
-            select * from wish w_p2
-            where w_p2.user_id = h_p2.user_id
-            and h_p1.category_4 = w_p2.category_4
-          )
-          AND w_p1.user_id = :user_id
-          and w_p1.user_id != h_p2.user_id
-            union
-          /*category-5*/
-          select w_p1.id as p1_id, w_p1.user_id p1_user_id, w_p1.article_id p1_wish_article_id, w_p1.category_1 p1_wish_category_1, w_p1.category_2 p1_wish_category_2, w_p1.category_3 p1_wish_category_3, w_p1.category_4 p1_wish_category_4, w_p1.category_5 p1_wish_category_5, w_p1.category_6 p1_wish_category_6, w_p1.category_7 p1_wish_category_7, w_p1.category_8 p1_wish_category_8, w_p1.category_9 p1_wish_category_9, w_p1.category_10 p1_wish_category_10, w_p1.category_11 p1_wish_category_11, w_p1.category_12 p1_wish_category_12, w_p1.category_13 p1_wish_category_13, h_p2.id p2_id, h_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, h_p2.category_1 p2_have_category_1, h_p2.category_2 p2_have_category_2, h_p2.category_2 p2_have_category_3, h_p2.category_1 p2_have_category_3, h_p2.category_4 p2_have_category_4, h_p2.category_5 p2_have_category_5, h_p2.category_6 p2_have_category_6, h_p2.category_7 p2_have_category_7, h_p2.category_8 p2_have_category_8, h_p2.category_9 p2_have_category_9, h_p2.category_10 p2_have_category_10, h_p2.category_11 p2_have_category_11, h_p2.category_12 p2_have_category_12, h_p2.category_13 p2_have_category_13, h_p1.article_id p1_have_article_id, h_p1.category_1 p1_have_category_1, h_p1.category_2 p1_have_category_2, h_p1.category_2 p1_have_category_3, h_p1.category_1 p1_have_category_3, h_p1.category_4 p1_have_category_4, h_p1.category_5 p1_have_category_5, h_p1.category_6 p1_have_category_6, h_p1.category_7 p1_have_category_7, h_p1.category_8 p1_have_category_8, h_p1.category_9 p1_have_category_9, h_p1.category_10 p1_have_category_10, h_p1.category_11 p1_have_category_11, h_p1.category_12 p1_have_category_12, h_p1.category_13 p1_have_category_13, '5' as matchlevel  from have h_p2
-          inner join wish w_p1 on h_p2.category_5 = w_p1.category_5
-          inner join have h_p1 on w_p1.user_id = h_p1.user_id 
-          where exists(
-            select * from wish w_p2
-            where w_p2.user_id = h_p2.user_id
-            and h_p1.category_5 = w_p2.category_5
-          )
-          AND w_p1.user_id = :user_id
-          and w_p1.user_id != h_p2.user_id
-            union
-          /*category-6*/
-          select w_p1.id as p1_id, w_p1.user_id p1_user_id, w_p1.article_id p1_wish_article_id, w_p1.category_1 p1_wish_category_1, w_p1.category_2 p1_wish_category_2, w_p1.category_3 p1_wish_category_3, w_p1.category_4 p1_wish_category_4, w_p1.category_5 p1_wish_category_5, w_p1.category_6 p1_wish_category_6, w_p1.category_7 p1_wish_category_7, w_p1.category_8 p1_wish_category_8, w_p1.category_9 p1_wish_category_9, w_p1.category_10 p1_wish_category_10, w_p1.category_11 p1_wish_category_11, w_p1.category_12 p1_wish_category_12, w_p1.category_13 p1_wish_category_13, h_p2.id p2_id, h_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, h_p2.category_1 p2_have_category_1, h_p2.category_2 p2_have_category_2, h_p2.category_2 p2_have_category_3, h_p2.category_1 p2_have_category_3, h_p2.category_4 p2_have_category_4, h_p2.category_5 p2_have_category_5, h_p2.category_6 p2_have_category_6, h_p2.category_7 p2_have_category_7, h_p2.category_8 p2_have_category_8, h_p2.category_9 p2_have_category_9, h_p2.category_10 p2_have_category_10, h_p2.category_11 p2_have_category_11, h_p2.category_12 p2_have_category_12, h_p2.category_13 p2_have_category_13, h_p1.article_id p1_have_article_id, h_p1.category_1 p1_have_category_1, h_p1.category_2 p1_have_category_2, h_p1.category_2 p1_have_category_3, h_p1.category_1 p1_have_category_3, h_p1.category_4 p1_have_category_4, h_p1.category_5 p1_have_category_5, h_p1.category_6 p1_have_category_6, h_p1.category_7 p1_have_category_7, h_p1.category_8 p1_have_category_8, h_p1.category_9 p1_have_category_9, h_p1.category_10 p1_have_category_10, h_p1.category_11 p1_have_category_11, h_p1.category_12 p1_have_category_12, h_p1.category_13 p1_have_category_13, '6' as matchlevel  from have h_p2
-          inner join wish w_p1 on h_p2.category_6 = w_p1.category_6
-          inner join have h_p1 on w_p1.user_id = h_p1.user_id 
-          where exists(
-            select * from wish w_p2
-            where w_p2.user_id = h_p2.user_id
-            and h_p1.category_6 = w_p2.category_6
-          )
-          AND w_p1.user_id = :user_id
-          and w_p1.user_id != h_p2.user_id
-            union
-          /*category-7*/
-          select w_p1.id as p1_id, w_p1.user_id p1_user_id, w_p1.article_id p1_wish_article_id, w_p1.category_1 p1_wish_category_1, w_p1.category_2 p1_wish_category_2, w_p1.category_3 p1_wish_category_3, w_p1.category_4 p1_wish_category_4, w_p1.category_5 p1_wish_category_5, w_p1.category_6 p1_wish_category_6, w_p1.category_7 p1_wish_category_7, w_p1.category_8 p1_wish_category_8, w_p1.category_9 p1_wish_category_9, w_p1.category_10 p1_wish_category_10, w_p1.category_11 p1_wish_category_11, w_p1.category_12 p1_wish_category_12, w_p1.category_13 p1_wish_category_13, h_p2.id p2_id, h_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, h_p2.category_1 p2_have_category_1, h_p2.category_2 p2_have_category_2, h_p2.category_2 p2_have_category_3, h_p2.category_1 p2_have_category_3, h_p2.category_4 p2_have_category_4, h_p2.category_5 p2_have_category_5, h_p2.category_6 p2_have_category_6, h_p2.category_7 p2_have_category_7, h_p2.category_8 p2_have_category_8, h_p2.category_9 p2_have_category_9, h_p2.category_10 p2_have_category_10, h_p2.category_11 p2_have_category_11, h_p2.category_12 p2_have_category_12, h_p2.category_13 p2_have_category_13, h_p1.article_id p1_have_article_id, h_p1.category_1 p1_have_category_1, h_p1.category_2 p1_have_category_2, h_p1.category_2 p1_have_category_3, h_p1.category_1 p1_have_category_3, h_p1.category_4 p1_have_category_4, h_p1.category_5 p1_have_category_5, h_p1.category_6 p1_have_category_6, h_p1.category_7 p1_have_category_7, h_p1.category_8 p1_have_category_8, h_p1.category_9 p1_have_category_9, h_p1.category_10 p1_have_category_10, h_p1.category_11 p1_have_category_11, h_p1.category_12 p1_have_category_12, h_p1.category_13 p1_have_category_13, '7' as matchlevel  from have h_p2
-          inner join wish w_p1 on h_p2.category_7 = w_p1.category_7
-          inner join have h_p1 on w_p1.user_id = h_p1.user_id 
-          where exists(
-            select * from wish w_p2
-            where w_p2.user_id = h_p2.user_id
-            and h_p1.category_7 = w_p2.category_7
-          )
-          AND w_p1.user_id = :user_id
-          and w_p1.user_id != h_p2.user_id
-            union
-          /*category-8*/
-          select w_p1.id as p1_id, w_p1.user_id p1_user_id, w_p1.article_id p1_wish_article_id, w_p1.category_1 p1_wish_category_1, w_p1.category_2 p1_wish_category_2, w_p1.category_3 p1_wish_category_3, w_p1.category_4 p1_wish_category_4, w_p1.category_5 p1_wish_category_5, w_p1.category_6 p1_wish_category_6, w_p1.category_7 p1_wish_category_7, w_p1.category_8 p1_wish_category_8, w_p1.category_9 p1_wish_category_9, w_p1.category_10 p1_wish_category_10, w_p1.category_11 p1_wish_category_11, w_p1.category_12 p1_wish_category_12, w_p1.category_13 p1_wish_category_13, h_p2.id p2_id, h_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, h_p2.category_1 p2_have_category_1, h_p2.category_2 p2_have_category_2, h_p2.category_2 p2_have_category_3, h_p2.category_1 p2_have_category_3, h_p2.category_4 p2_have_category_4, h_p2.category_5 p2_have_category_5, h_p2.category_6 p2_have_category_6, h_p2.category_7 p2_have_category_7, h_p2.category_8 p2_have_category_8, h_p2.category_9 p2_have_category_9, h_p2.category_10 p2_have_category_10, h_p2.category_11 p2_have_category_11, h_p2.category_12 p2_have_category_12, h_p2.category_13 p2_have_category_13, h_p1.article_id p1_have_article_id, h_p1.category_1 p1_have_category_1, h_p1.category_2 p1_have_category_2, h_p1.category_2 p1_have_category_3, h_p1.category_1 p1_have_category_3, h_p1.category_4 p1_have_category_4, h_p1.category_5 p1_have_category_5, h_p1.category_6 p1_have_category_6, h_p1.category_7 p1_have_category_7, h_p1.category_8 p1_have_category_8, h_p1.category_9 p1_have_category_9, h_p1.category_10 p1_have_category_10, h_p1.category_11 p1_have_category_11, h_p1.category_12 p1_have_category_12, h_p1.category_13 p1_have_category_13, '8' as matchlevel  from have h_p2
-          inner join wish w_p1 on h_p2.category_8 = w_p1.category_8
-          inner join have h_p1 on w_p1.user_id = h_p1.user_id 
-          where exists(
-            select * from wish w_p2
-            where w_p2.user_id = h_p2.user_id
-            and h_p1.category_8 = w_p2.category_8
-          )
-          AND w_p1.user_id = :user_id
-          and w_p1.user_id != h_p2.user_id
-            union
-          /*category-9*/
-          select w_p1.id as p1_id, w_p1.user_id p1_user_id, w_p1.article_id p1_wish_article_id, w_p1.category_1 p1_wish_category_1, w_p1.category_2 p1_wish_category_2, w_p1.category_3 p1_wish_category_3, w_p1.category_4 p1_wish_category_4, w_p1.category_5 p1_wish_category_5, w_p1.category_6 p1_wish_category_6, w_p1.category_7 p1_wish_category_7, w_p1.category_8 p1_wish_category_8, w_p1.category_9 p1_wish_category_9, w_p1.category_10 p1_wish_category_10, w_p1.category_11 p1_wish_category_11, w_p1.category_12 p1_wish_category_12, w_p1.category_13 p1_wish_category_13, h_p2.id p2_id, h_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, h_p2.category_1 p2_have_category_1, h_p2.category_2 p2_have_category_2, h_p2.category_2 p2_have_category_3, h_p2.category_1 p2_have_category_3, h_p2.category_4 p2_have_category_4, h_p2.category_5 p2_have_category_5, h_p2.category_6 p2_have_category_6, h_p2.category_7 p2_have_category_7, h_p2.category_8 p2_have_category_8, h_p2.category_9 p2_have_category_9, h_p2.category_10 p2_have_category_10, h_p2.category_11 p2_have_category_11, h_p2.category_12 p2_have_category_12, h_p2.category_13 p2_have_category_13, h_p1.article_id p1_have_article_id, h_p1.category_1 p1_have_category_1, h_p1.category_2 p1_have_category_2, h_p1.category_2 p1_have_category_3, h_p1.category_1 p1_have_category_3, h_p1.category_4 p1_have_category_4, h_p1.category_5 p1_have_category_5, h_p1.category_6 p1_have_category_6, h_p1.category_7 p1_have_category_7, h_p1.category_8 p1_have_category_8, h_p1.category_9 p1_have_category_9, h_p1.category_10 p1_have_category_10, h_p1.category_11 p1_have_category_11, h_p1.category_12 p1_have_category_12, h_p1.category_13 p1_have_category_13, '9' as matchlevel  from have h_p2
-          inner join wish w_p1 on h_p2.category_9 = w_p1.category_9
-          inner join have h_p1 on w_p1.user_id = h_p1.user_id 
-          where exists(
-            select * from wish w_p2
-            where w_p2.user_id = h_p2.user_id
-            and h_p1.category_9 = w_p2.category_9
-          )
-          AND w_p1.user_id = :user_id
-          and w_p1.user_id != h_p2.user_id
-            union
-          /*category-10*/
-          select w_p1.id as p1_id, w_p1.user_id p1_user_id, w_p1.article_id p1_wish_article_id, w_p1.category_1 p1_wish_category_1, w_p1.category_2 p1_wish_category_2, w_p1.category_3 p1_wish_category_3, w_p1.category_4 p1_wish_category_4, w_p1.category_5 p1_wish_category_5, w_p1.category_6 p1_wish_category_6, w_p1.category_7 p1_wish_category_7, w_p1.category_8 p1_wish_category_8, w_p1.category_9 p1_wish_category_9, w_p1.category_10 p1_wish_category_10, w_p1.category_11 p1_wish_category_11, w_p1.category_12 p1_wish_category_12, w_p1.category_13 p1_wish_category_13, h_p2.id p2_id, h_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, h_p2.category_1 p2_have_category_1, h_p2.category_2 p2_have_category_2, h_p2.category_2 p2_have_category_3, h_p2.category_1 p2_have_category_3, h_p2.category_4 p2_have_category_4, h_p2.category_5 p2_have_category_5, h_p2.category_6 p2_have_category_6, h_p2.category_7 p2_have_category_7, h_p2.category_8 p2_have_category_8, h_p2.category_9 p2_have_category_9, h_p2.category_10 p2_have_category_10, h_p2.category_11 p2_have_category_11, h_p2.category_12 p2_have_category_12, h_p2.category_13 p2_have_category_13, h_p1.article_id p1_have_article_id, h_p1.category_1 p1_have_category_1, h_p1.category_2 p1_have_category_2, h_p1.category_2 p1_have_category_3, h_p1.category_1 p1_have_category_3, h_p1.category_4 p1_have_category_4, h_p1.category_5 p1_have_category_5, h_p1.category_6 p1_have_category_6, h_p1.category_7 p1_have_category_7, h_p1.category_8 p1_have_category_8, h_p1.category_9 p1_have_category_9, h_p1.category_10 p1_have_category_10, h_p1.category_11 p1_have_category_11, h_p1.category_12 p1_have_category_12, h_p1.category_13 p1_have_category_13, '10' as matchlevel  from have h_p2
-          inner join wish w_p1 on h_p2.category_10 = w_p1.category_10
-          inner join have h_p1 on w_p1.user_id = h_p1.user_id 
-          where exists(
-            select * from wish w_p2
-            where w_p2.user_id = h_p2.user_id
-            and h_p1.category_10 = w_p2.category_10
-          )
-          AND w_p1.user_id = :user_id
-          and w_p1.user_id != h_p2.user_id
-            union
-          /*category-11*/
-          select w_p1.id as p1_id, w_p1.user_id p1_user_id, w_p1.article_id p1_wish_article_id, w_p1.category_1 p1_wish_category_1, w_p1.category_2 p1_wish_category_2, w_p1.category_3 p1_wish_category_3, w_p1.category_4 p1_wish_category_4, w_p1.category_5 p1_wish_category_5, w_p1.category_6 p1_wish_category_6, w_p1.category_7 p1_wish_category_7, w_p1.category_8 p1_wish_category_8, w_p1.category_9 p1_wish_category_9, w_p1.category_10 p1_wish_category_10, w_p1.category_11 p1_wish_category_11, w_p1.category_12 p1_wish_category_12, w_p1.category_13 p1_wish_category_13, h_p2.id p2_id, h_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, h_p2.category_1 p2_have_category_1, h_p2.category_2 p2_have_category_2, h_p2.category_2 p2_have_category_3, h_p2.category_1 p2_have_category_3, h_p2.category_4 p2_have_category_4, h_p2.category_5 p2_have_category_5, h_p2.category_6 p2_have_category_6, h_p2.category_7 p2_have_category_7, h_p2.category_8 p2_have_category_8, h_p2.category_9 p2_have_category_9, h_p2.category_10 p2_have_category_10, h_p2.category_11 p2_have_category_11, h_p2.category_12 p2_have_category_12, h_p2.category_13 p2_have_category_13, h_p1.article_id p1_have_article_id, h_p1.category_1 p1_have_category_1, h_p1.category_2 p1_have_category_2, h_p1.category_2 p1_have_category_3, h_p1.category_1 p1_have_category_3, h_p1.category_4 p1_have_category_4, h_p1.category_5 p1_have_category_5, h_p1.category_6 p1_have_category_6, h_p1.category_7 p1_have_category_7, h_p1.category_8 p1_have_category_8, h_p1.category_9 p1_have_category_9, h_p1.category_10 p1_have_category_10, h_p1.category_11 p1_have_category_11, h_p1.category_12 p1_have_category_12, h_p1.category_13 p1_have_category_13, '11' as matchlevel  from have h_p2
-          inner join wish w_p1 on h_p2.category_11 = w_p1.category_11
-          inner join have h_p1 on w_p1.user_id = h_p1.user_id 
-          where exists(
-            select * from wish w_p2
-            where w_p2.user_id = h_p2.user_id
-            and h_p1.category_11 = w_p2.category_11
-          )
-          AND w_p1.user_id = :user_id
-          and w_p1.user_id != h_p2.user_id
-            union
-          /*category-12*/
-          select w_p1.id as p1_id, w_p1.user_id p1_user_id, w_p1.article_id p1_wish_article_id, w_p1.category_1 p1_wish_category_1, w_p1.category_2 p1_wish_category_2, w_p1.category_3 p1_wish_category_3, w_p1.category_4 p1_wish_category_4, w_p1.category_5 p1_wish_category_5, w_p1.category_6 p1_wish_category_6, w_p1.category_7 p1_wish_category_7, w_p1.category_8 p1_wish_category_8, w_p1.category_9 p1_wish_category_9, w_p1.category_10 p1_wish_category_10, w_p1.category_11 p1_wish_category_11, w_p1.category_12 p1_wish_category_12, w_p1.category_13 p1_wish_category_13, h_p2.id p2_id, h_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, h_p2.category_1 p2_have_category_1, h_p2.category_2 p2_have_category_2, h_p2.category_2 p2_have_category_3, h_p2.category_1 p2_have_category_3, h_p2.category_4 p2_have_category_4, h_p2.category_5 p2_have_category_5, h_p2.category_6 p2_have_category_6, h_p2.category_7 p2_have_category_7, h_p2.category_8 p2_have_category_8, h_p2.category_9 p2_have_category_9, h_p2.category_10 p2_have_category_10, h_p2.category_11 p2_have_category_11, h_p2.category_12 p2_have_category_12, h_p2.category_13 p2_have_category_13, h_p1.article_id p1_have_article_id, h_p1.category_1 p1_have_category_1, h_p1.category_2 p1_have_category_2, h_p1.category_2 p1_have_category_3, h_p1.category_1 p1_have_category_3, h_p1.category_4 p1_have_category_4, h_p1.category_5 p1_have_category_5, h_p1.category_6 p1_have_category_6, h_p1.category_7 p1_have_category_7, h_p1.category_8 p1_have_category_8, h_p1.category_9 p1_have_category_9, h_p1.category_10 p1_have_category_10, h_p1.category_11 p1_have_category_11, h_p1.category_12 p1_have_category_12, h_p1.category_13 p1_have_category_13, '12' as matchlevel  from have h_p2
-          inner join wish w_p1 on h_p2.category_12 = w_p1.category_12
-          inner join have h_p1 on w_p1.user_id = h_p1.user_id 
-          where exists(
-            select * from wish w_p2
-            where w_p2.user_id = h_p2.user_id
-            and h_p1.category_12 = w_p2.category_12
-          )
-          AND w_p1.user_id = :user_id
-          and w_p1.user_id != h_p2.user_id
-            union
-          /*category-13*/
-          select w_p1.id as p1_id, w_p1.user_id p1_user_id, w_p1.article_id p1_wish_article_id, w_p1.category_1 p1_wish_category_1, w_p1.category_2 p1_wish_category_2, w_p1.category_3 p1_wish_category_3, w_p1.category_4 p1_wish_category_4, w_p1.category_5 p1_wish_category_5, w_p1.category_6 p1_wish_category_6, w_p1.category_7 p1_wish_category_7, w_p1.category_8 p1_wish_category_8, w_p1.category_9 p1_wish_category_9, w_p1.category_10 p1_wish_category_10, w_p1.category_11 p1_wish_category_11, w_p1.category_12 p1_wish_category_12, w_p1.category_13 p1_wish_category_13, h_p2.id p2_id, h_p2.user_id p2_user_id, h_p2.article_id p2_have_article_id, h_p2.category_1 p2_have_category_1, h_p2.category_2 p2_have_category_2, h_p2.category_2 p2_have_category_3, h_p2.category_1 p2_have_category_3, h_p2.category_4 p2_have_category_4, h_p2.category_5 p2_have_category_5, h_p2.category_6 p2_have_category_6, h_p2.category_7 p2_have_category_7, h_p2.category_8 p2_have_category_8, h_p2.category_9 p2_have_category_9, h_p2.category_10 p2_have_category_10, h_p2.category_11 p2_have_category_11, h_p2.category_12 p2_have_category_12, h_p2.category_13 p2_have_category_13, h_p1.article_id p1_have_article_id, h_p1.category_1 p1_have_category_1, h_p1.category_2 p1_have_category_2, h_p1.category_2 p1_have_category_3, h_p1.category_1 p1_have_category_3, h_p1.category_4 p1_have_category_4, h_p1.category_5 p1_have_category_5, h_p1.category_6 p1_have_category_6, h_p1.category_7 p1_have_category_7, h_p1.category_8 p1_have_category_8, h_p1.category_9 p1_have_category_9, h_p1.category_10 p1_have_category_10, h_p1.category_11 p1_have_category_11, h_p1.category_12 p1_have_category_12, h_p1.category_13 p1_have_category_13, '13' as matchlevel  from have h_p2
-          inner join wish w_p1 on h_p2.category_13 = w_p1.category_13
-          inner join have h_p1 on w_p1.user_id = h_p1.user_id 
-          where exists(
-            select * from wish w_p2
-            where w_p2.user_id = h_p2.user_id
-            and h_p1.category_13 = w_p2.category_13
-          )
-          AND w_p1.user_id = :user_id
-          and w_p1.user_id != h_p2.user_id
-          )
-          
-          select * from matches
-          order by cast(matchlevel as integer) desc`, {
+            select * from matches 
+            order by cast(matchlevel as int) desc
+        `)
+      )
+    }
+
+    //SQL query that searches for three-part matches through 13 potential categories
+    try {
+      const [results, metadata] = await db.query(
+        sqlQuery
+      , {
           replacements: { user_id },
           type: db.QueryTypes.RAW
       });
