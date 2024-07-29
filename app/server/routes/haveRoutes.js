@@ -41,7 +41,6 @@ function validateInput(input) {
   return { valid: true, message: 'All inputs are valid' };
 }
 
-
 export const getHaveRoutes = () => {
   const router = Router();
 
