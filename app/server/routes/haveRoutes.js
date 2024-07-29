@@ -1,45 +1,8 @@
 import { Router } from 'express';
 import * as object from '../models/objectIndex.js';
 import { db } from '../database/databaseConnection.js';
-import validate from 'uuid-validate';
+import { validateInput } from '../middleware/routeFunctions.js';
 
-function validateRequestBody(body, requiredKeys) {
-  
-      const missingKeys = [];
-      const emptyKeys = [];
-
-      requiredKeys.forEach(key => {
-          if (!body.hasOwnProperty(key)) {
-              missingKeys.push(key);
-          } else if (req.body[key] === null || body[key] === undefined || body[key] === '') {
-              emptyKeys.push(key);
-          }
-      });
-
-      if (missingKeys.length > 0 || emptyKeys.length > 0) {
-          return {
-              message: 'Validation error',
-              missingKeys,
-              emptyKeys
-          };
-      }
-
-  };
-
-//Function for validating required input fields from request
-function validateInput(input) {
-  for (let key in input) {
-    if (input.hasOwnProperty(key)) {
-      let value = input[key];
-      if (!value) {
-        return { valid: false, message: `${key} cannot be empty` };
-      } else if (!validate(value)) {
-        return { valid: false, message: `${key} must be a valid UUID` };
-      }
-    }
-  }
-  return { valid: true, message: 'All inputs are valid' };
-}
 
 export const getHaveRoutes = () => {
   const router = Router();
@@ -69,7 +32,7 @@ export const getHaveRoutes = () => {
       category_13,
      } = req.body;
 
-     const validate = validateInput({ article_id });
+    const validate = validateInput({ article_id });
   
     if (validate.valid) {
       try {
@@ -775,7 +738,7 @@ export const getHaveRoutes = () => {
           return res.status(404).json('No have created');
         }
     
-        res.status(201);
+        res.status(201).json({ message: 'Have created'});
       } catch (error) {
         console.error('Error creating have', error);
         res.status(500).json('Internal Server Error');
