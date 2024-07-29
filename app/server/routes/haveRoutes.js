@@ -3,6 +3,44 @@ import * as object from '../models/objectIndex.js';
 import { db } from '../database/databaseConnection.js';
 import validate from 'uuid-validate';
 
+function validateRequestBody(body, requiredKeys) {
+  
+      const missingKeys = [];
+      const emptyKeys = [];
+
+      requiredKeys.forEach(key => {
+          if (!body.hasOwnProperty(key)) {
+              missingKeys.push(key);
+          } else if (req.body[key] === null || body[key] === undefined || body[key] === '') {
+              emptyKeys.push(key);
+          }
+      });
+
+      if (missingKeys.length > 0 || emptyKeys.length > 0) {
+          return {
+              message: 'Validation error',
+              missingKeys,
+              emptyKeys
+          };
+      }
+
+  };
+
+//Function for validating required input fields from request
+function validateInput(input) {
+  for (let key in input) {
+    if (input.hasOwnProperty(key)) {
+      let value = input[key];
+      if (!value) {
+        return { valid: false, message: `${key} cannot be empty` };
+      } else if (!validate(value)) {
+        return { valid: false, message: `${key} must be a valid UUID` };
+      }
+    }
+  }
+  return { valid: true, message: 'All inputs are valid' };
+}
+
 export const getHaveRoutes = () => {
   const router = Router();
 
@@ -30,17 +68,11 @@ export const getHaveRoutes = () => {
       category_12,
       category_13,
      } = req.body;
-  
-    // Validate article_id
-    if (!article_id) {
-      return res.status(400).json({ message: 'Missing required article_id parameter' });
-    }
-  
-    if (!validate(article_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    }
 
-    try {
+     const validate = validateInput({ article_id });
+  
+    if (validate.valid) {
+      try {
         const updatedHave = await object.have.findOne({ where: {article_id: article_id} });
 
         updatedHave.set({
@@ -66,52 +98,46 @@ export const getHaveRoutes = () => {
     } catch (error) {
       console.error('Error updating have', error);
       res.status(500).json({ message: 'Internal Server Error' });
+    }  
+    } else {
+      res.status(400).json({ message: validate.message });
     }
   });
 
   router.delete('/deleteHave', async (req, res, next) => {
     const { article_id } = req.body;
     
-    if (!article_id) {
-      return res.status(400).json({ message: 'Missing required article_id parameter' });
-    }
+    const validate = validateInput({ article_id });
 
-    if ( !validate(article_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    } 
-
-    try {
-      const result = await object.have.destroy({
-        where: {
-          article_id: article_id,
+    if (validate.valid) {
+      try {
+        const result = await object.have.destroy({
+          where: {
+            article_id: article_id,
+          }
+        });
+  
+        if (result === 0) {
+          return res.status(404).json({ message: 'Have not found' });
         }
-      });
-
-      if (result === 0) {
-        return res.status(404).json({ message: 'Have not found' });
+        res.sendStatus(204);
+      } catch (error) {
+        console.error('Error deleting have', error);
+        res.status(500).json('Internal Server Error');
       }
-
-      res.sendStatus(204);
-    } catch (error) {
-      console.error('Error deleting have', error);
-      res.status(500).json('Internal Server Error');
+    } else {
+      res.status(400).json({ message: validate.message });
     }
-
   });
 
   //Finding two part matches based on singular 'user_id'. 
   router.get('/twoPartMatchHave', async (req, res, next) => {
     const { user_id } = req.body;  
-    
-    if (!user_id) {
-      return res.status(400).json({ message: 'Missing required user_id parameter' });
-    }
 
-    if ( !validate(user_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    } 
+    const validate = validateInput({ user_id });
 
-    //SQL query that searches for two-part matches through 13 potential categories
+    if (validate.valid) {
+      //SQL query that searches for two-part matches through 13 potential categories
     try {
       const [results, metadata] = await db.query(`
       with matches as
@@ -283,229 +309,225 @@ export const getHaveRoutes = () => {
       console.error('Error fetching matches:', error);
       res.status(500).json({ message: 'Internal Server Error' });
     }
+    } else {
+      res.status(400).json({ message: validate.message });
+    }
   });
 
   //function for finding matches based on singular 'article_id'. 
   router.get('/getArticle', async (req, res, next) => {
-    const { article_id } = req.body;  
+    const { article_id } = req.body; 
 
-    if (!article_id) {
-      return res.status(400).json({ message: 'Missing required article_id parameter' });
+    const validate = validateInput({ article_id });
+
+    if (validate.valid) {
+        //SQL query that searches through 13 potential categories
+        try {
+          const [results, metadata] = await db.query(`
+          with matches as
+          (
+          select *, '1'  as matchlevel
+          FROM wish w
+          where exists (
+            select * from have h
+            where w.category_1 = h.category_1 
+            and h.article_id = :article_id
+            and h.user_id != w.user_id 
+          )
+          union
+          select *, '2' as matchlevel
+          FROM wish w
+          where exists (
+            select * from have h
+            where w.category_2 = h.category_2 
+            and h.article_id = :article_id
+            and h.user_id != w.user_id
+          )
+          union
+          select *, '3' as matchlevel
+          FROM wish w
+          where exists (
+            select * from have h
+            where w.category_3 = h.category_3 
+            and h.article_id = :article_id
+            and h.user_id != w.user_id
+          )
+          union
+          select *, '4' as matchlevel
+          FROM wish w
+          where exists (
+            select * from have h
+            where w.category_4 = h.category_4 
+            and h.article_id = :article_id
+            and h.user_id != w.user_id
+          )
+          union
+          select *, '5' as matchlevel
+          FROM wish w
+          where exists (
+            select * from have h
+            where w.category_5 = h.category_5 
+            and h.article_id = :article_id
+            and h.user_id != w.user_id
+          )
+          union
+          select *, '6' as matchlevel
+          FROM wish w
+          where exists (
+            select * from have h
+            where w.category_6 = h.category_6 
+            and h.article_id = :article_id
+            and h.user_id != w.user_id
+          )
+          union
+          select *, '7' as matchlevel
+          FROM wish w
+          where exists (
+            select * from have h
+            where w.category_7 = h.category_7
+            and h.article_id = :article_id
+            and h.user_id != w.user_id
+          )
+          union
+          select *, '8' as matchlevel
+          FROM wish w
+          where exists (
+            select * from have h
+            where w.category_8 = h.category_8 
+            and h.article_id = :article_id
+            and h.user_id != w.user_id
+          )
+          union
+          select *, '9' as matchlevel
+          FROM wish w
+          where exists (
+            select * from have h
+            where w.category_9 = h.category_9 
+            and h.article_id = :article_id
+            and h.user_id != w.user_id
+          )
+          union
+          select *, '10' as matchlevel
+          FROM wish w
+          where exists (
+            select * from have h
+            where w.category_10 = h.category_10
+            and h.article_id = :article_id
+            and h.user_id != w.user_id
+          )
+          union
+          select *, '11' as matchlevel
+          FROM wish w
+          where exists (
+            select * from have h
+            where w.category_11 = h.category_11 
+            and h.article_id = :article_id
+            and h.user_id != w.user_id
+          )
+          union
+          select *, '12' as matchlevel
+          FROM wish w
+          where exists (
+            select * from have h
+            where w.category_12 = h.category_12 
+            and h.article_id = :article_id
+            and h.user_id != w.user_id
+          )    
+          union
+          select *, '13' as matchlevel
+          FROM wish w
+          where exists (
+            select * from have h
+            where w.category_13 = h.category_13 
+            and h.article_id = :article_id
+            and h.user_id != w.user_id
+          )
+          )
+          select * from matches
+          order by cast(matchlevel as int) desc`, {
+          replacements: { article_id },
+          type: db.QueryTypes.RAW
+        });
+
+        //Object created for sending API-response
+        let sortedMatches = {
+          1: [],
+          2: [],
+          3: [],
+          4: [],
+          5: [],
+          6: [],
+          7: [],
+          8: [],
+          9: [],
+          10: [],
+          11: [],
+          12: [],
+          13: []
+        };
+
+        // Process results to populate sortedMatches
+        results.forEach(item => {
+          let { 
+            id,
+            user_id,
+            article_id,
+            category_1,
+            category_2,
+            category_3,
+            category_4,
+            category_5,
+            category_6,
+            category_7,
+            category_8,
+            category_9,
+            category_10,
+            category_11,
+            category_12,
+            category_13,
+            matchlevel
+          } = item;
+          matchlevel = parseInt(matchlevel)
+          
+          sortedMatches[matchlevel].push({
+            id,
+            user_id,
+            article_id,
+            category_1,
+            category_2,
+            category_3,
+            category_4,
+            category_5,
+            category_6,
+            category_7,
+            category_8,
+            category_9,
+            category_10,
+            category_11,
+            category_12,
+            category_13,
+            matchlevel
+          });  
+      });
+        console.log(sortedMatches);
+        res.status(200).json(results);
+      } catch (error) {
+        console.error('Error fetching matches:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+      }
+    } else {
+      res.status(400).json({ message: validate.message });
     }
-
-    if ( !validate(article_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    } 
-
-    //SQL query that searches through 13 potential categories
-    try {
-      const [results, metadata] = await db.query(`
-      with matches as
-      (
-      select *, '1'  as matchlevel
-      FROM wish w
-      where exists (
-        select * from have h
-        where w.category_1 = h.category_1 
-        and h.article_id = :article_id
-        and h.user_id != w.user_id 
-      )
-      union
-      select *, '2' as matchlevel
-      FROM wish w
-      where exists (
-        select * from have h
-        where w.category_2 = h.category_2 
-        and h.article_id = :article_id
-        and h.user_id != w.user_id
-      )
-      union
-      select *, '3' as matchlevel
-      FROM wish w
-      where exists (
-        select * from have h
-        where w.category_3 = h.category_3 
-        and h.article_id = :article_id
-        and h.user_id != w.user_id
-      )
-      union
-      select *, '4' as matchlevel
-      FROM wish w
-      where exists (
-        select * from have h
-        where w.category_4 = h.category_4 
-        and h.article_id = :article_id
-        and h.user_id != w.user_id
-      )
-      union
-      select *, '5' as matchlevel
-      FROM wish w
-      where exists (
-        select * from have h
-        where w.category_5 = h.category_5 
-        and h.article_id = :article_id
-        and h.user_id != w.user_id
-      )
-      union
-      select *, '6' as matchlevel
-      FROM wish w
-      where exists (
-        select * from have h
-        where w.category_6 = h.category_6 
-        and h.article_id = :article_id
-        and h.user_id != w.user_id
-      )
-      union
-      select *, '7' as matchlevel
-      FROM wish w
-      where exists (
-        select * from have h
-        where w.category_7 = h.category_7
-        and h.article_id = :article_id
-        and h.user_id != w.user_id
-      )
-      union
-      select *, '8' as matchlevel
-      FROM wish w
-      where exists (
-        select * from have h
-        where w.category_8 = h.category_8 
-        and h.article_id = :article_id
-        and h.user_id != w.user_id
-      )
-      union
-      select *, '9' as matchlevel
-      FROM wish w
-      where exists (
-        select * from have h
-        where w.category_9 = h.category_9 
-        and h.article_id = :article_id
-        and h.user_id != w.user_id
-      )
-      union
-      select *, '10' as matchlevel
-      FROM wish w
-      where exists (
-        select * from have h
-        where w.category_10 = h.category_10
-        and h.article_id = :article_id
-        and h.user_id != w.user_id
-      )
-      union
-      select *, '11' as matchlevel
-      FROM wish w
-      where exists (
-        select * from have h
-        where w.category_11 = h.category_11 
-        and h.article_id = :article_id
-        and h.user_id != w.user_id
-      )
-      union
-      select *, '12' as matchlevel
-      FROM wish w
-      where exists (
-        select * from have h
-        where w.category_12 = h.category_12 
-        and h.article_id = :article_id
-        and h.user_id != w.user_id
-      )    
-      union
-      select *, '13' as matchlevel
-      FROM wish w
-      where exists (
-        select * from have h
-        where w.category_13 = h.category_13 
-        and h.article_id = :article_id
-        and h.user_id != w.user_id
-      )
-      )
-      select * from matches
-      order by cast(matchlevel as int) desc`, {
-      replacements: { article_id },
-      type: db.QueryTypes.RAW
-    });
-
-    //Object created for sending API-response
-    let sortedMatches = {
-      1: [],
-      2: [],
-      3: [],
-      4: [],
-      5: [],
-      6: [],
-      7: [],
-      8: [],
-      9: [],
-      10: [],
-      11: [],
-      12: [],
-      13: []
-    };
-
-    // Process results to populate sortedMatches
-    results.forEach(item => {
-      let { 
-        id,
-        user_id,
-        article_id,
-        category_1,
-        category_2,
-        category_3,
-        category_4,
-        category_5,
-        category_6,
-        category_7,
-        category_8,
-        category_9,
-        category_10,
-        category_11,
-        category_12,
-        category_13,
-        matchlevel
-       } = item;
-      matchlevel = parseInt(matchlevel)
-      
-      sortedMatches[matchlevel].push({
-        id,
-        user_id,
-        article_id,
-        category_1,
-        category_2,
-        category_3,
-        category_4,
-        category_5,
-        category_6,
-        category_7,
-        category_8,
-        category_9,
-        category_10,
-        category_11,
-        category_12,
-        category_13,
-        matchlevel
-      });  
-  });
-    console.log(sortedMatches);
-    res.status(200).json(results);
-  } catch (error) {
-    console.error('Error fetching matches:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
   });
 
   //Function for finding users that wants what 'user_id' has. Matches are found based on a singular have request. 
   router.get('/matchForHave', async (req, res, next) => {
     const { user_id } = req.body;  
-  
-    if (!user_id) {
-      return res.status(400).json({ message: 'Missing required user_id parameter' });
-    }
 
-    if ( !validate(user_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    } 
-  
-    //SQL query that searches through 13 potential categories
+    const validate = validateInput({ user_id });
+
+    if (validate.valid) {
+      //SQL query that searches through 13 potential categories
     try {
       const [results, metadata] = await db.query(`
       with matches as
@@ -699,6 +721,9 @@ export const getHaveRoutes = () => {
       console.error('Error fetching wishes:', error);
       res.status(500).json({ message: 'Internal Server Error' });
     }
+    } else {
+      res.status(400).json({ message: validate.message });
+    }
   });
 
   //Function for creating a new have object in db
@@ -722,43 +747,41 @@ export const getHaveRoutes = () => {
       category_13 
     } = req.body;
   
-    // Validate the input data
-    if (!id || !user_id || !category_1) {
-      return res.status(400).json('Missing required fields');
-    }
+    //Så småningom ska här vara en för category också!
+    const validate = validateInput({id, user_id, article_id});
 
-    if (!validate(id) || !validate(user_id)) {
-      return res.status(400).json({ message: 'Invalid request format. The provided identifier must be a valid UUID.' });
-    } 
-  
-    try {
-      const result = await object.have.create({
-        id,
-        user_id,
-        article_id,
-        category_1,
-        category_2, 
-        category_3, 
-        category_4, 
-        category_5, 
-        category_6, 
-        category_7, 
-        category_8, 
-        category_9, 
-        category_10, 
-        category_11, 
-        category_12, 
-        category_13
-      });
-  
-      if (result === null) {
-        return res.status(404).json('No have created');
+    if (validate.valid) {
+      try {
+        const result = await object.have.create({
+          id,
+          user_id,
+          article_id,
+          category_1,
+          category_2, 
+          category_3, 
+          category_4, 
+          category_5, 
+          category_6, 
+          category_7, 
+          category_8, 
+          category_9, 
+          category_10, 
+          category_11, 
+          category_12, 
+          category_13
+        });
+    
+        if (result === null) {
+          return res.status(404).json('No have created');
+        }
+    
+        res.status(201);
+      } catch (error) {
+        console.error('Error creating have', error);
+        res.status(500).json('Internal Server Error');
       }
-  
-      res.status(201);
-    } catch (error) {
-      console.error('Error creating have', error);
-      res.status(500).json('Internal Server Error');
+    } else {
+      res.status(400).json({ message: validate.message });
     }
   });
   
