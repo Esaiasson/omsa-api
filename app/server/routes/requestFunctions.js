@@ -1,4 +1,4 @@
-
+import { db } from '../database/databaseConnection.js';
 
 export const generateSqlQuery = (baseQuery, category_range) => {
     
@@ -21,4 +21,54 @@ export const generateSqlQuery = (baseQuery, category_range) => {
     }
 
     return sqlQuery
+}
+
+
+export const queryDb = async (sqlQuery, replacementValues) => {
+
+    try {
+        const [results, metadata] = await db.query(
+        sqlQuery
+        , {
+            replacements: replacementValues,
+            type: db.QueryTypes.RAW
+        });
+
+      //Object created for sending API-response
+        let sortedMatches = {
+            1: [],
+            2: [],
+            3: [],
+            4: [],
+            5: [],
+            6: [],
+            7: [],
+            8: [],
+            9: [],
+            10: [],
+            11: [],
+            12: [],
+            13: []
+        };
+
+        console.log(results)
+
+
+        results.forEach(item => {
+            let matchlevel = parseInt(item.matchlevel)            
+            sortedMatches[matchlevel].push(
+                item
+            );
+            
+        });
+
+        console.log(sortedMatches);
+        return {'accepted': true, 'results': results};
+
+    } catch (error) {
+      console.error('Error fetching matches:', error);
+      return {'accepted': false, message: 'Internal Server Error' };
+    }
+
+
 }
