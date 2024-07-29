@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as object from '../models/objectIndex.js';
 import { db } from '../database/databaseConnection.js';
 import { validateInput } from '../middleware/routeFunctions.js';
+import { v4 as uuidv4 } from 'uuid';
 
 
 export const getHaveRoutes = () => {
@@ -692,7 +693,6 @@ export const getHaveRoutes = () => {
   //Function for creating a new have object in db
   router.post('/createHave', async (req, res, next) => {
     const { 
-      id, 
       user_id, 
       article_id,
       category_1, 
@@ -709,7 +709,8 @@ export const getHaveRoutes = () => {
       category_12, 
       category_13 
     } = req.body;
-  
+    
+    const id = uuidv4();
     //Så småningom ska här vara en för category också!
     const validate = validateInput({id, user_id, article_id});
 

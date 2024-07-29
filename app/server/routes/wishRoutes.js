@@ -2,7 +2,7 @@ import { Router } from 'express';
 import * as object from '../models/objectIndex.js';
 import { db } from '../database/databaseConnection.js';
 import { validateInput } from '../middleware/routeFunctions.js';
-
+import { v4 as uuidv4 } from 'uuid';
 
 export const getWishRoutes = () => {
   const router = Router();
@@ -424,7 +424,7 @@ export const getWishRoutes = () => {
 
   //Function for creating a new wish object in db
   router.post('/createWish', async (req, res, next) => {
-    const { id, 
+    const {
       user_id, 
       category_1, 
       category_2, 
@@ -441,6 +441,7 @@ export const getWishRoutes = () => {
       category_13 
     } = req.body;
 
+    const id = uuidv4();
     const validate = validateInput({ id, user_id });
 
     //TEMPORÄR TILL CATEGORY ÄR ETT UUID
