@@ -2,9 +2,12 @@
 
 # dependencies
 /node_modules
+/app/client/node_modules
 /app/server/node_modules
+/app/server/node_modules/uuid
 /.pnp
 .pnp.js
+node_modules/
 
 # testing
 /coverage
