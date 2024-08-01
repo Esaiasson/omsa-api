@@ -5,6 +5,8 @@ import { validateInput } from '../middleware/routeFunctions.js';
 import { generateSqlQuery, queryDb } from './requestFunctions.js'
 import { v4 as uuidv4 } from 'uuid';
 
+import { authenticateUser } from '../authentication/apiAuth.js';
+
 export const getWishRoutes = () => {
   const router = Router();
 

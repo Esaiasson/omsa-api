@@ -1,5 +1,6 @@
 import { wish } from "./wish.js";
 import { have } from './have.js'
+import { apiUser } from "./apiUser.js";
 
 const environment = process.env.DEV_ENVIRONMENT;
 
@@ -23,5 +24,6 @@ if (process.env.DEV_ENVIRONMENT === 'local') {
 
 export {
     have,
-    wish
+    wish,
+    apiUser
 }

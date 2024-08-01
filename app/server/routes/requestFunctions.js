@@ -51,8 +51,6 @@ export const queryDb = async (sqlQuery, replacementValues) => {
             13: []
         };
 
-        console.log(results)
-
 
         results.forEach(item => {
             let matchlevel = parseInt(item.matchlevel)            
@@ -62,7 +60,6 @@ export const queryDb = async (sqlQuery, replacementValues) => {
             
         });
 
-        console.log(sortedMatches);
         return {'accepted': true, 'results': results};
 
     } catch (error) {
