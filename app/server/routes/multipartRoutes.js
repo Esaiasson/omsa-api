@@ -5,7 +5,7 @@ import { generateSqlQuery, queryDb } from './requestFunctions.js'
 export const getMultipartRoutes = () => {
   const router = Router();
 
-
+  
  router.get('/fourPartMatch', async (req, res, next) => {
     const { user_id, category_range } = req.body;  
   
