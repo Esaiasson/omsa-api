@@ -12,10 +12,30 @@ export const validateInput = (input) => {
         }
       }
     }
-    return { valid: true, message: 'All inputs are valid' };
+    return { valid: true };
 };
 
+export const validateString = (input) => {
+  const maxLength = 100;
 
+  for (let key in input) {
+    if (input.hasOwnProperty(key)) {
+      let value = input[key];
+
+      // Skip validation if value is empty, null, or undefined
+      if (value === "" || value === null || value === undefined) {
+        continue;
+      }
+
+      if (typeof value !== 'string') {
+        return { valid: false, message: `${key} must be a string` };
+      } else if (value.length > maxLength) {
+        return { valid: false, message: `${key} cannot exceed ${maxLength} characters` };
+      }
+    }
+  }
+  return { valid: true };
+};
 
 export const validateRequestBody = (body, requiredKeys) => {
   

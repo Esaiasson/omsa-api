@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as object from '../models/objectIndex.js';
 import { db } from '../database/databaseConnection.js';
-import { validateInput } from '../middleware/routeFunctions.js';
+import { validateInput, validateString } from '../middleware/routeFunctions.js';
 import { generateSqlQuery, queryDb } from './requestFunctions.js'
 import { v4 as uuidv4 } from 'uuid';
 
@@ -31,12 +31,26 @@ export const getHaveRoutes = () => {
       category_10,
       category_11,
       category_12,
-      category_13,
+      category_13
      } = req.body;
 
     const validate = validateInput({ article_id });
+    const validateStr = validateString({ 
+      category_1, 
+      category_2, 
+      category_3,
+      category_4,
+      category_5,
+      category_6,
+      category_7,
+      category_8,
+      category_9,
+      category_10,
+      category_11,
+      category_12,
+      category_13 })
   
-    if (validate.valid) {
+    if (validate.valid && validateStr.valid) {
       try {
         const updatedHave = await object.have.findOne({ where: {article_id: article_id} });
 
@@ -57,15 +71,16 @@ export const getHaveRoutes = () => {
         });
       
         await updatedHave.save();
-  
+        console.log('have updated');
       // Send back the updated entity
       res.status(200).json(updatedHave);
+      
     } catch (error) {
       console.error('Error updating have', error);
       res.status(500).json({ message: 'Internal Server Error' });
     }  
     } else {
-      res.status(400).json({ message: validate.message });
+      res.status(400).json({ uuidError: validate.message, stringError: validateStr.message });
     }
   });
 
