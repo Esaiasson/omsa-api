@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as object from '../models/objectIndex.js';
 import { db } from '../database/databaseConnection.js';
-import { validateInput } from '../middleware/routeFunctions.js';
+import { validateInput, validateString } from '../middleware/routeFunctions.js';
 import { generateSqlQuery, queryDb } from './requestFunctions.js'
 import { v4 as uuidv4 } from 'uuid';
 
@@ -34,8 +34,23 @@ export const getWishRoutes = () => {
      } = req.body;
     
     const validate = validateInput({ article_id });
+    const validateStr = validateString({ 
+      category_1, 
+      category_2, 
+      category_3,
+      category_4,
+      category_5,
+      category_6,
+      category_7,
+      category_8,
+      category_9,
+      category_10,
+      category_11,
+      category_12,
+      category_13 
+    });
   
-    if (validate.valid) {
+    if (validate.valid && validateStr.valid) {
       try {
         const updatedWish = await object.wish.findOne({ where: {article_id: article_id} });
 
@@ -64,7 +79,7 @@ export const getWishRoutes = () => {
       res.status(500).json({ message: 'Internal Server Error' });
     }
     } else {
-      res.status(400).json({ message: validate.message });
+      res.status(400).json({ uuidMessage: validate.message, strMessage: validateStr.message });
     }
   });
 
@@ -185,14 +200,30 @@ export const getWishRoutes = () => {
 
     const id = uuidv4();
     const validate = validateInput({ id, user_id });
-
     //TEMPORÄR TILL CATEGORY ÄR ETT UUID
     if (!category_1) {
       return res.status(400).json('Category cannot be empty');
     }
     //TEMPORÄR TILL CATEGORY ÄR ETT UUID
+    const validateStr = validateString({ 
+      category_1, 
+      category_2, 
+      category_3,
+      category_4,
+      category_5,
+      category_6,
+      category_7,
+      category_8,
+      category_9,
+      category_10,
+      category_11,
+      category_12,
+      category_13 
+    });
 
-    if (validate.valid) {
+    
+
+    if (validate.valid && validateStr.valid) {
       try {
         const result = await object.wish.create({
           id,
@@ -222,7 +253,7 @@ export const getWishRoutes = () => {
         res.status(500).json('Internal Server Error');
       }
     } else {
-      res.status(400).json({ message: validate.message });
+      res.status(400).json({ uuidMessage: validate.message, strMessage: validateStr.message });
     }
   });
 

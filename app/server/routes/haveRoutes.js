@@ -48,7 +48,8 @@ export const getHaveRoutes = () => {
       category_10,
       category_11,
       category_12,
-      category_13 })
+      category_13 
+    });
   
     if (validate.valid && validateStr.valid) {
       try {
@@ -236,8 +237,23 @@ export const getHaveRoutes = () => {
     const id = uuidv4();
     //Så småningom ska här vara en för category också!
     const validate = validateInput({id, user_id, article_id});
+    const validateStr = validateString({ 
+      category_1, 
+      category_2, 
+      category_3,
+      category_4,
+      category_5,
+      category_6,
+      category_7,
+      category_8,
+      category_9,
+      category_10,
+      category_11,
+      category_12,
+      category_13 
+    });
 
-    if (validate.valid) {
+    if (validate.valid && validateStr.valid) {
       try {
         const result = await object.have.create({
           id,
@@ -268,7 +284,7 @@ export const getHaveRoutes = () => {
         res.status(500).json('Internal Server Error');
       }
     } else {
-      res.status(400).json({ message: validate.message });
+      res.status(400).json({ uuidMessage: validate.message, strMessage: validateStr.message });
     }
   });
   
